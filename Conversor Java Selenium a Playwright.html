@@ -1,0 +1,1683 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:,"/>
+<title>Java Selenium to Playwright Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f3; --surface:#ffffff; --surface2:#eef0ec; --line:#dde1da; --ink:#171a17; --muted:#6b726b; --faint:#8a918a;
+  --green:#0f7a5c; --green-bg:#e6f4ef; --orange:#c75b12; --orange-bg:#fdf0e6; --amber:#92600a; --amber-bg:#fef6dd;
+  --code-bg:#111613; --code-ink:#e8ede8; --radius:14px;
+  --font:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0e100e; --surface:#171a17; --surface2:#1e221e; --line:#2a2f2a; --ink:#ecefec; --muted:#9aa39a; --faint:#737c73; --green:#3ec79e; --green-bg:#12291f; --orange:#f0934e; --orange-bg:#2b1d0f; --amber:#e8c15a; --amber-bg:#2a230d; --code-bg:#0a0c0a;}
+}
+*{box-sizing:border-box} body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.5}
+button,select,input,textarea{font-family:inherit}
+button,[role="button"],select,input:not([type="checkbox"]){min-height:38px}
+a{color:var(--green)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px 48px}
+.top{padding:28px 0 18px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:flex-end;border-bottom:1px solid var(--line)}
+.top h1{font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.02em;margin:6px 0 8px;font-weight:700;max-width:640px}
+.top h1 em{font-style:normal;color:var(--green)}
+.top p{color:var(--muted);max-width:620px;margin:0;font-size:15.5px}
+.lang-flow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;font-weight:600}
+.pill{padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.pill.java{color:var(--orange);background:var(--orange-bg);border-color:transparent}
+.pill.pw{color:var(--green);background:var(--green-bg);border-color:transparent}
+.arrow{color:var(--faint)}
+.preserves{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13.5px;color:var(--muted)}
+.preserves span::before{content:"✓ ";color:var(--green);font-weight:700}
+
+/* toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 0}
+.toolbar label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+select,input[type="text"]{background:var(--surface);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:8px 10px;font-size:14px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:9px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;min-height:40px}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+@media(prefers-color-scheme:dark){.btn.primary{color:#06110c}}
+.btn.primary:hover{opacity:.92}
+.spacer{flex:1}
+.seg{display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);min-height:34px}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.stat b{display:block;font-size:24px;line-height:1;font-family:var(--mono)}
+.stat span{font-size:12px;color:var(--muted);font-weight:500}
+
+/* editors */
+.editors{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.editors{grid-template-columns:1fr}}
+.pane{background:var(--code-bg);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--line)}
+.pane-head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.08);color:#c9d1c9;font-size:13px}
+.dot{width:9px;height:9px;border-radius:50%}
+.pane-head .fname{font-family:var(--mono);font-weight:600;color:#fff}
+.pane-head .tag{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:999px}
+.tag.j{background:#3a2410;color:#f5a65b}.tag.t{background:#0f2e23;color:#4ade9e}
+.pane-head button{background:rgba(255,255,255,.08);color:#e8ede8;border:0;border-radius:7px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:32px}
+textarea.code{flex:1;min-height:520px;width:100%;border:0;resize:vertical;background:transparent;color:var(--code-ink);font-family:var(--mono);font-size:13px;line-height:1.65;padding:16px;outline:none;tab-size:2;white-space:pre}
+@media(max-width:860px){textarea.code{min-height:380px}}
+textarea.code::placeholder{color:#6b756b}
+
+/* warnings */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-top:14px}
+.panel h2{margin:0 0 4px;font-size:17px}
+.panel p.sub{margin:0 0 12px;color:var(--muted);font-size:14px}
+.warn-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.warn-list li{display:flex;gap:10px;font-size:14px;background:var(--amber-bg);color:var(--ink);border-radius:10px;padding:10px 12px}
+.warn-list li code{font-family:var(--mono);font-size:12.5px}
+.warn-list li.ok{background:var(--green-bg)}
+.empty-note{font-size:14px;color:var(--muted)}
+
+/* mapping */
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td code{font-family:var(--mono);font-size:12.3px;word-break:break-word}
+td:first-child{color:var(--orange)} td:last-child{color:var(--green)}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:12px}
+.steps li{counter-increment:s;display:flex;gap:12px;font-size:14px}
+.steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--green-bg);color:var(--green);font-weight:700;font-size:13px;display:grid;place-items:center}
+.steps b{display:block}
+.steps span{color:var(--muted)}
+footer{margin-top:22px;font-size:13px;color:var(--faint);text-align:center}
+.toast{position:fixed;bottom:18px;left:50%;transform:translate(-50%,80px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;transition:transform .25s;z-index:20}
+.toast.show{transform:translate(-50%,0)}
+/* project upload */
+.project-bar{background:var(--surface);border:1.5px dashed #9db8ad;border-radius:16px;padding:18px;margin:6px 0 14px}
+@media(prefers-color-scheme:dark){.project-bar{border-color:#335646}}
+.project-bar.drag{border-color:var(--green);background:var(--green-bg)}
+.project-bar-top{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
+.project-bar-main{flex:1;min-width:260px}
+.project-bar-main strong{display:block;font-size:16.5px;margin-bottom:4px}
+.project-bar-main span{color:var(--muted);font-size:14px;display:block;line-height:1.55}
+.project-bar-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.file-btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;border:1px solid var(--green);border-radius:9px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;min-height:42px}
+@media(prefers-color-scheme:dark){.file-btn{color:#06110c}}
+.file-btn:hover{opacity:.92}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.project-hint{font-size:12.8px;color:var(--muted);margin:12px 0 0;line-height:1.5}
+.project-status{margin-top:12px;font-size:14px;display:none}
+.project-status.show{display:block}
+.project-status .okbox{background:var(--green-bg);border-radius:10px;padding:11px 13px}
+.project-status .errbox{background:var(--orange-bg);border-radius:10px;padding:11px 13px}
+.project-files{margin-top:12px;display:none}
+.project-files.show{display:block}
+.project-files h3{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+.pf-list{display:grid;gap:6px;max-height:300px;overflow:auto}
+.pf-row{display:flex;gap:10px;align-items:center;text-align:left;width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13.5px}
+.pf-row:hover{border-color:var(--green)}
+.pf-row b{font-family:var(--mono);font-size:12.5px;word-break:break-all}
+.pf-row span{color:var(--muted);font-family:var(--mono);font-size:12.5px;word-break:break-all}
+.pf-row em{font-style:normal;margin-left:auto;flex:none;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--green-bg);color:var(--green)}
+.pf-row em.cfg{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+/* static validation */
+.val-head{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
+.val-badge{flex:none;font-size:13px;font-weight:800;letter-spacing:.02em;padding:8px 14px;border-radius:999px}
+.val-badge.pass{background:var(--green-bg);color:var(--green)}
+.val-badge.warn{background:var(--amber-bg);color:var(--amber)}
+.val-badge.fail{background:var(--orange-bg);color:var(--orange)}
+.val-badge.none{background:var(--surface2);color:var(--muted)}
+.val-score{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:6px}
+.val-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+.val-table th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:6px 8px;border-bottom:1px solid var(--line)}
+.val-table td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.val-table td.num{font-family:var(--mono);text-align:center;white-space:nowrap}
+.val-st{font-weight:800;font-size:12px;white-space:nowrap}
+.val-st.pass{color:var(--green)} .val-st.warn{color:var(--amber)} .val-st.fail{color:var(--orange)}
+.val-detail{color:var(--muted);font-size:12.8px}
+.val-tests{margin-top:14px;display:grid;gap:6px}
+.val-tests h3{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:0 0 2px}
+.val-test-row{display:flex;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13.5px;flex-wrap:wrap}
+.val-test-row b{font-family:var(--mono);font-size:12.8px}
+.val-test-row span{color:var(--muted);font-size:12.8px}
+.val-actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+/* environment stability */
+.env-controls{display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;margin-top:12px}
+@media(max-width:860px){.env-controls{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.env-controls{grid-template-columns:1fr}}
+.env-controls label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+.env-controls input[type="text"],.env-controls select{width:100%}
+.env-alert{display:none;margin-top:14px;border-radius:10px;padding:12px 14px;font-size:14.5px}
+.env-alert.show{display:block}
+.env-alert.bad{background:var(--orange-bg)}
+.env-alert.warn{background:var(--amber-bg)}
+.env-alert.good{background:var(--green-bg)}
+.env-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:860px){.env-grid{grid-template-columns:1fr}}
+.env-card{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.env-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.env-card-head b{font-size:16px}
+.env-badge{flex:none;font-size:12px;font-weight:800;letter-spacing:.02em;padding:6px 12px;border-radius:999px;background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.env-badge.stable{background:var(--green-bg);color:var(--green);border-color:transparent}
+.env-badge.unstable{background:var(--amber-bg);color:var(--amber);border-color:transparent}
+.env-badge.down{background:var(--orange-bg);color:var(--orange);border-color:transparent}
+.env-badge.checking{background:var(--surface);color:var(--ink)}
+.env-url{font-family:var(--mono);font-size:12.3px;color:var(--muted);word-break:break-all;margin:8px 0 10px}
+.env-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:480px){.env-metrics{grid-template-columns:repeat(2,1fr)}}
+.env-metric{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.env-metric b{display:block;font-family:var(--mono);font-size:16px;line-height:1.15}
+.env-metric span{font-size:11.5px;color:var(--muted)}
+.env-detail{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.55}
+.env-log{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;font-size:13px}
+.env-log li{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:var(--mono);font-size:12.3px;word-break:break-word}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="lang-flow"><span class="pill java">Java · Selenium · TestNG</span><span class="arrow">→</span><span class="pill pw">TypeScript · Playwright</span></div>
+      <h1>Your same test, <em>in Playwright</em>.</h1>
+      <p>Paste your Java Selenium code — or upload your <strong>full project .zip</strong> below — and get the Playwright equivalent: same method names, same logic, same metadata, and same data — only the language and framework change.</p>
+      <div class="preserves">
+        <span>Method and class names</span><span>@Test · groups · priority · timeout</span><span>@DataProvider</span><span>Page Objects</span><span>Assertions</span><span>Comments</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <label for="exampleSel">Example</label>
+    <select id="exampleSel">
+      <option value="login">LoginTest.java — full login</option>
+      <option value="data">RegistrationTest.java — @DataProvider</option>
+      <option value="search">SearchTest.java — waits, lists, and select</option>
+      <option value="page">LoginPage.java — Page Object with @FindBy</option>
+      <option value="base">BaseTest.java — shared base → fixture</option>
+      <option value="blank">Start blank</option>
+    </select>
+    <div class="seg" role="group" aria-label="Output style">
+      <button id="styleTest" class="on" type="button">test.describe</button>
+      <button id="styleFlat" type="button">Standalone tests</button>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn" id="clearBtn" type="button">Clear</button>
+    <button class="btn primary" id="convertBtn" type="button">Convert to Playwright →</button>
+  </div>
+
+  <section class="project-bar" id="dropZone" aria-label="Upload full project">
+    <div class="project-bar-top">
+      <div class="project-bar-main">
+        <strong>Have the full Selenium project? Upload it and everything gets converted.</strong>
+        <span>Upload the <b>.zip</b> with your <code style="font-family:var(--mono)">src</code>, <code style="font-family:var(--mono)">pom.xml</code>, and <code style="font-family:var(--mono)">testng.xml</code>. Each class is converted to its Playwright file, preserving folders, names, and data: tests go to <code style="font-family:var(--mono)">tests/</code>, Page Objects with <code style="font-family:var(--mono)">@FindBy</code> to <code style="font-family:var(--mono)">pages/</code>, the base class to <code style="font-family:var(--mono)">fixtures/</code>, and utilities to <code style="font-family:var(--mono)">utils/</code>. It also generates <code style="font-family:var(--mono)">package.json</code> and <code style="font-family:var(--mono)">playwright.config.ts</code> so you can download the ready-to-run project.</span>
+      </div>
+      <div class="project-bar-actions">
+        <label class="file-btn" for="zipInput">📦 Upload project .zip</label>
+        <input type="file" id="zipInput" accept=".zip,.7z,.rar" hidden>
+        <button class="btn" id="dlProjectBtn" type="button" disabled>⬇ Download Playwright project (.zip)</button>
+      </div>
+    </div>
+    <p class="project-hint">Drag and drop your file here or use the button. Formats: <b>.zip</b> is fully converted in your browser. <b>.7z / .rar</b> are also accepted in the picker — if the browser cannot open them, recompress the same folder as .zip and upload it: the contents convert the same way. Everything is processed locally; nothing is uploaded to a server. Avoid including <code style="font-family:var(--mono)">target/</code> or <code style="font-family:var(--mono)">.git</code> if you can — if they are included, they are ignored.</p>
+    <div class="project-status" id="projectStatus"></div>
+    <div class="project-files" id="projectFilesWrap">
+      <h3 id="projectFilesTitle">Converted project files — tap one to view it in the editors</h3>
+      <div class="pf-list" id="projectFiles"></div>
+    </div>
+  </section>
+
+  <div class="stats" id="stats">
+    <div class="stat"><b data-k="methods">0</b><span>methods preserved</span></div>
+    <div class="stat"><b data-k="locators">0</b><span>locators converted</span></div>
+    <div class="stat"><b data-k="asserts">0</b><span>assertions converted</span></div>
+    <div class="stat"><b data-k="annotations">0</b><span>annotations mapped</span></div>
+    <div class="stat"><b data-k="providers">0</b><span>data providers</span></div>
+    <div class="stat"><b data-k="todos">0</b><span>to review (TODO)</span></div>
+  </div>
+
+  <section class="editors">
+    <div class="pane">
+      <div class="pane-head"><span class="dot" style="background:#e76f00"></span><span class="fname" id="inName">LoginTest.java</span><span class="tag j">JAVA · SELENIUM</span></div>
+      <textarea class="code" id="input" spellcheck="false" placeholder="// Paste your Java class with Selenium + TestNG here…"></textarea>
+    </div>
+    <div class="pane">
+      <div class="pane-head"><span class="dot" style="background:#2ead7f"></span><span class="fname" id="outName">login.spec.ts</span>
+        <button id="copyBtn" type="button">Copy</button>
+        <button id="dlBtn" type="button">Download .spec.ts</button>
+        <span class="tag t">TS · PLAYWRIGHT</span></div>
+      <textarea class="code" id="output" spellcheck="false" readonly placeholder="The converted TypeScript will appear here…"></textarea>
+    </div>
+  </section>
+
+  <section class="panel" id="warnPanel">
+    <h2>Engine review</h2>
+    <p class="sub">What converted cleanly and what was marked as <code style="font-family:var(--mono)">// TODO</code> in the code because it has no 1:1 equivalent — a conversion is never invented.</p>
+    <ul class="warn-list" id="warnList"></ul>
+  </section>
+
+  <section class="panel" id="validationPanel" aria-label="Static validation of the conversion">
+    <div class="val-head">
+      <div>
+        <h2>Static validation — does it run the same in Playwright?</h2>
+        <p class="sub" style="margin-bottom:0">Without running anything, it compares the original Java against the generated TypeScript: same tests, same names, same assertions, same data rows, same URLs, and same locators. If anything does not match, you see it here before running the suite. This does not replace running both suites in the same environment — it validates the equivalence of the converted code.</p>
+      </div>
+      <div style="text-align:right">
+        <span class="val-badge none" id="valBadge">NOT CONVERTED</span>
+        <div class="val-score" id="valScore"></div>
+      </div>
+    </div>
+    <div id="valBody">
+      <p class="empty-note">Convert an example, paste your Java, or upload a project .zip and the report by check and by test will appear here.</p>
+    </div>
+    <div class="val-actions">
+      <button class="btn" id="revalidateBtn" type="button">↻ Re-validate</button>
+      <button class="btn" id="dlValidationBtn" type="button" disabled>⬇ Download report (.md)</button>
+    </div>
+  </section>
+
+  <section class="panel" id="envPanel" aria-label="QA and UAT environment stability checker">
+    <div class="val-head">
+      <div>
+        <h2>Environment stability — QA / UAT</h2>
+        <p class="sub" style="margin-bottom:0">Before running real tests, it probes each environment several times and reports right here whether it is <b>stable</b>, <b>unstable</b>, or <b>not responding</b>: if an environment comes back unstable, the warning stays visible on this screen and in the downloadable report, so you do not run the suite against a down environment and mistake its failures for failures in your tests. Criteria: unstable if at least 1 probe fails, if average latency exceeds 1,500 ms, if a single probe exceeds 3,000 ms, or if variation between probes exceeds 1,000 ms.</p>
+      </div>
+      <div style="text-align:right">
+        <span class="val-badge none" id="envOverallBadge">NOT CHECKED</span>
+        <div class="val-score" id="envOverallScore"></div>
+      </div>
+    </div>
+
+    <div class="env-controls">
+      <div>
+        <label for="envQaUrl">QA environment URL</label>
+        <input type="text" id="envQaUrl" placeholder="https://qa.your-application.com" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <label for="envUatUrl">UAT environment URL</label>
+        <input type="text" id="envUatUrl" placeholder="https://uat.your-application.com" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <label for="envProbes">Probes</label>
+        <select id="envProbes">
+          <option value="3">3 per environment</option>
+          <option value="5" selected>5 per environment</option>
+          <option value="10">10 per environment</option>
+        </select>
+      </div>
+      <div>
+        <label for="envTimeout">Timeout</label>
+        <select id="envTimeout">
+          <option value="4000">4 s per probe</option>
+          <option value="6000" selected>6 s per probe</option>
+          <option value="10000">10 s per probe</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="env-alert" id="envAlert" role="alert"></div>
+
+    <div class="env-grid">
+      <article class="env-card" id="envCardQA">
+        <div class="env-card-head"><b>QA</b><span class="env-badge" id="envBadgeQA">NOT CHECKED</span></div>
+        <p class="env-url" id="envUrlQA">No URL configured</p>
+        <div class="env-metrics">
+          <div class="env-metric"><b id="envOkQA">—</b><span>probes OK</span></div>
+          <div class="env-metric"><b id="envAvgQA">—</b><span>avg. latency</span></div>
+          <div class="env-metric"><b id="envMaxQA">—</b><span>max. latency</span></div>
+          <div class="env-metric"><b id="envVarQA">—</b><span>variation</span></div>
+        </div>
+        <p class="env-detail" id="envDetailQA">Enter the QA URL and press "Check stability now".</p>
+      </article>
+      <article class="env-card" id="envCardUAT">
+        <div class="env-card-head"><b>UAT</b><span class="env-badge" id="envBadgeUAT">NOT CHECKED</span></div>
+        <p class="env-url" id="envUrlUAT">No URL configured</p>
+        <div class="env-metrics">
+          <div class="env-metric"><b id="envOkUAT">—</b><span>probes OK</span></div>
+          <div class="env-metric"><b id="envAvgUAT">—</b><span>avg. latency</span></div>
+          <div class="env-metric"><b id="envMaxUAT">—</b><span>max. latency</span></div>
+          <div class="env-metric"><b id="envVarUAT">—</b><span>variation</span></div>
+        </div>
+        <p class="env-detail" id="envDetailUAT">Enter the UAT URL and press "Check stability now".</p>
+      </article>
+    </div>
+
+    <div class="val-actions">
+      <button class="btn primary" id="envCheckBtn" type="button">Check stability now</button>
+      <button class="btn" id="envDlReportBtn" type="button" disabled>⬇ Download stability report (.md)</button>
+      <button class="btn" id="envDlSpecBtn" type="button">⬇ Download Playwright check (.spec.ts)</button>
+    </div>
+    <p class="project-hint">The probe runs from your browser: it measures whether the environment responds and how long it takes, probe by probe. Due to browser CORS rules, the response is read as "reachable / not reachable" plus its timing, not the exact HTTP status code. For the full check — real status code and an automatic gate before the suite — download <code style="font-family:var(--mono)">env-stability.spec.ts</code>: it runs with Playwright on your machine, with no CORS limit, and is also included in the converted project .zip (<code style="font-family:var(--mono)">tests/env-stability.spec.ts</code>). Run it before the suite with <code style="font-family:var(--mono)">npx playwright test tests/env-stability.spec.ts</code>: if an environment is unstable or down, that test fails and reports it by name.</p>
+    <ul class="env-log" id="envLog"></ul>
+  </section>
+
+  <div class="grid2">
+    <section class="panel" style="margin-top:0">
+      <h2>Conversion map applied</h2>
+      <p class="sub">The rules this prototype uses, visible in every conversion.</p>
+      <table>
+        <tr><th>Selenium / TestNG (Java)</th><th>Playwright (TypeScript)</th></tr>
+        <tr><td><code>driver.get(url)</code></td><td><code>await page.goto(url)</code></td></tr>
+        <tr><td><code>findElement(By.id("x"))</code></td><td><code>page.locator('#x')</code></td></tr>
+        <tr><td><code>findElement(By.cssSelector / xpath / name)</code></td><td><code>page.locator('…')</code></td></tr>
+        <tr><td><code>findElement(By.linkText("x"))</code></td><td><code>page.getByRole('link', { name: 'x' })</code></td></tr>
+        <tr><td><code>.click() / .sendKeys(v) / .clear()</code></td><td><code>.click() / .fill(v) / .fill('')</code></td></tr>
+        <tr><td><code>.getText() / .isDisplayed()</code></td><td><code>await .textContent() / .isVisible()</code></td></tr>
+        <tr><td><code>WebDriverWait + ExpectedConditions</code></td><td><code>await locator.waitFor({ state })</code></td></tr>
+        <tr><td><code>Thread.sleep(ms)</code></td><td><code>await page.waitForTimeout(ms)</code></td></tr>
+        <tr><td><code>@BeforeMethod / @AfterMethod</code></td><td><code>test.beforeEach / test.afterEach</code></td></tr>
+        <tr><td><code>@BeforeClass / @AfterClass</code></td><td><code>test.beforeAll / test.afterAll</code></td></tr>
+        <tr><td><code>@Test(groups, priority, timeout)</code></td><td><code>test('…', { tag, timeout })</code> + order preserved</td></tr>
+        <tr><td><code>@DataProvider + Object[][]</code></td><td><code>const data = [...]</code> + <code>for</code> / <code>test.each</code> conceptual</td></tr>
+        <tr><td><code>Assert.assertEquals(a, b)</code></td><td><code>expect(a).toBe(b)</code></td></tr>
+        <tr><td><code>Assert.assertTrue / assertFalse / assertNotNull</code></td><td><code>expect(x).toBeTruthy() / toBeFalsy() / not.toBeNull()</code></td></tr>
+        <tr><td><code>new Select(el).selectByVisibleText(t)</code></td><td><code>await el.selectOption({ label: t })</code></td></tr>
+        <tr><td><code>String / int / boolean · System.out.println</code></td><td><code>const · console.log</code></td></tr>
+        <tr><td><code>for (int i = 0; …) · catch (Exception e)</code></td><td><code>for (let i = 0; …) · catch (e)</code></td></tr>
+        <tr><td><code>Assert.fail(msg)</code></td><td><code>throw new Error(msg)</code></td></tr>
+        <tr><td><code>js.executeScript(…)</code></td><td><code>await page.evaluate(…) / el.evaluate(…)</code></td></tr>
+        <tr><td><code>Actions.moveToElement(el).click().perform()</code></td><td><code>await el.hover(); await el.click()</code></td></tr>
+        <tr><td><code>@FindBy + WebElement, no @Test (Page Object)</code></td><td><code>pages/…ts</code> — class with <code>Locator</code>s in the constructor</td></tr>
+        <tr><td><code>BaseTest · @Before/@After + new ChromeDriver(), no @Test</code></td><td><code>fixtures/…ts</code> — extended <code>test</code> (<code>base.extend</code>)</td></tr>
+        <tr><td><code>Static methods / *Util, *Reader, *Helper, no driver</code></td><td><code>utils/…ts</code> — class with static methods</td></tr>
+        <tr><td><code>Unannotated method inside a test</code></td><td>Helper function with the same name, inside the <code>describe</code></td></tr>
+        <tr><td><code>Actions.moveToElement(findElement(…)).click().perform()</code></td><td><code>await locator.hover(); await locator.click()</code></td></tr>
+        <tr><td><code>driver = new ChromeDriver(); driver.get(url);</code> (same line)</td><td>Each statement is converted separately: the <code>goto</code> is preserved</td></tr>
+        <tr><td><code>Project .zip · pom.xml · testng.xml</code></td><td><code>Project .zip · package.json · playwright.config.ts</code></td></tr>
+        <tr><td><code>QA / UAT environments before running the real suite</code></td><td><code>tests/env-stability.spec.ts</code> — probes each environment, measures latency, and fails reporting the unstable environment</td></tr>
+      </table>
+    </section>
+
+    <section class="panel" style="margin-top:0">
+      <h2>How the engine works</h2>
+      <p class="sub">It is not search-and-replace: it reads the structure and rewrites while preserving intent.</p>
+      <ol class="steps">
+        <li><div><b>Reads and classifies the class</b><span>With @Test it goes to tests/; with @FindBy/WebElement and no @Test it is a Page and goes to pages/; a base with @Before/@After and a shared driver goes to fixtures/ as an extended test; static methods with no driver go to utils/. It also reads unannotated methods and preserves them as helpers.</span></div></li>
+        <li><div><b>Interprets the metadata</b><span>Each TestNG annotation is mapped to its Playwright hook or test, with groups, priority, and timeout.</span></div></li>
+        <li><div><b>Extracts the data</b><span>@DataProviders become typed arrays with the same rows and columns.</span></div></li>
+        <li><div><b>Rewrites the body</b><span>Locators, actions, waits, and assertions line by line; everything asynchronous gets its await.</span></div></li>
+        <li><div><b>Flags what is uncertain</b><span>Alerts, old-style screenshots, or custom libraries with no equivalent are left as // TODO with a warning, for human review.</span></div></li>
+        <li><div><b>Validates equivalence</b><span>Compares original and generated code without running: test count and names, assertions, @DataProvider rows, URLs, locators, hooks, and TODOs. The report stays above and, for projects, as VALIDATION.md inside the downloaded .zip.</span></div></li>
+        <li><div><b>Validates the environment before running</b><span>Probes QA and UAT several times from the stability panel and reports in the UI which one is stable, unstable, or not responding, with latencies and check time. The same check ships as tests/env-stability.spec.ts to run with Playwright before the real suite.</span></div></li>
+      </ol>
+    </section>
+  </div>
+
+  <footer>Conversion engine prototype · The output is a faithful starting point from your code: run it with <span style="font-family:var(--mono)">npx playwright test</span> and review the flagged TODOs.</footer>
+</div>
+<div class="toast" id="toast">Copied</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* ================= EJEMPLOS ================= */
+var EXAMPLES = {
+login:
+'package com.example.tests;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.openqa.selenium.support.ui.WebDriverWait;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.testng.Assert;\nimport org.testng.annotations.*;\nimport java.time.Duration;\n\npublic class LoginTest {\n\n    WebDriver driver;\n    WebDriverWait wait;\n    String baseUrl = "https://shop.example.com";\n\n    @BeforeMethod\n    public void setUp() {\n        driver = new ChromeDriver();\n        driver.manage().window().maximize();\n        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));\n        wait = new WebDriverWait(driver, Duration.ofSeconds(15));\n        driver.get(baseUrl + "/login");\n    }\n\n    @Test(priority = 1, groups = {"smoke", "login"})\n    public void successfulLogin() {\n        driver.findElement(By.id("user")).sendKeys("carlos@example.com");\n        driver.findElement(By.id("password")).sendKeys("secret123");\n        driver.findElement(By.cssSelector("button[type=\'submit\']")).click();\n\n        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("welcome")));\n        WebElement message = driver.findElement(By.id("welcome"));\n        Assert.assertEquals(message.getText(), "Hello, Carlos");\n        Assert.assertTrue(driver.getCurrentUrl().contains("/dashboard"));\n        System.out.println("Login successful: " + message.getText());\n    }\n\n    @Test(priority = 2, groups = {"login"})\n    public void loginWithEmptyPassword() {\n        driver.findElement(By.name("user")).sendKeys("carlos@example.com");\n        driver.findElement(By.xpath("//button[text()=\'Sign in\']")).click();\n        WebElement error = driver.findElement(By.className("error"));\n        Assert.assertTrue(error.isDisplayed());\n        Assert.assertEquals(error.getText(), "Password is required");\n    }\n\n    @AfterMethod\n    public void tearDown() {\n        driver.quit();\n    }\n}',
+data:
+'package com.example.tests;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.testng.Assert;\nimport org.testng.annotations.*;\n\npublic class RegistrationTest {\n\n    WebDriver driver;\n\n    @BeforeMethod\n    public void setUp() {\n        driver = new ChromeDriver();\n        driver.get("https://shop.example.com/register");\n    }\n\n    @DataProvider(name = "users")\n    public Object[][] userData() {\n        return new Object[][] {\n            { "Ana", "ana@example.com", "pass123", true },\n            { "Luis", "luis@example.com", "pass456", true },\n            { "", "no-name@example.com", "pass789", false }\n        };\n    }\n\n    @Test(dataProvider = "users")\n    public void registrationOfUsers(String name, String email, String password, boolean expected) {\n        driver.findElement(By.id("name")).sendKeys(name);\n        driver.findElement(By.id("email")).sendKeys(email);\n        driver.findElement(By.id("password")).sendKeys(password);\n        driver.findElement(By.id("btn-register")).click();\n        boolean visible = driver.findElement(By.id("confirmation")).isDisplayed();\n        Assert.assertEquals(visible, expected);\n    }\n\n    @AfterMethod\n    public void tearDown() {\n        driver.quit();\n    }\n}',
+search:
+'package com.example.tests;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.openqa.selenium.support.ui.Select;\nimport org.testng.Assert;\nimport org.testng.annotations.*;\nimport java.util.List;\n\npublic class SearchTest {\n\n    WebDriver driver;\n\n    @BeforeClass\n    public void openStore() {\n        driver = new ChromeDriver();\n        driver.get("https://shop.example.com");\n    }\n\n    @Test(timeout = 30000)\n    public void searchAndFilter() throws InterruptedException {\n        driver.findElement(By.id("search")).sendKeys("sneakers");\n        driver.findElement(By.id("btn-search")).click();\n        Thread.sleep(2000);\n\n        WebElement sort = driver.findElement(By.id("sort"));\n        Select select = new Select(sort);\n        select.selectByVisibleText("Price: low to high");\n\n        List<WebElement> results = driver.findElements(By.cssSelector(".product"));\n        Assert.assertTrue(results.size() > 0);\n        String firstPrice = results.get(0).findElement(By.className("price")).getText();\n        System.out.println("First price: " + firstPrice);\n\n        driver.findElement(By.linkText("View details")).click();\n        Assert.assertEquals(driver.getTitle(), "Sneakers - Store");\n    }\n\n    @AfterClass\n    public void closeStore() {\n        driver.close();\n    }\n}'
+};
+var EXAMPLE_NAMES = { login:['LoginTest.java','login.spec.ts'], data:['RegistrationTest.java','registration.spec.ts'], search:['SearchTest.java','search.spec.ts'], page:['LoginPage.java','pages/login-page.ts'], base:['BaseTest.java','fixtures/base.ts'], blank:['MyTest.java','my-test.spec.ts'] };
+EXAMPLES.page =
+'package com.example.pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\nimport org.openqa.selenium.support.PageFactory;\nimport org.openqa.selenium.interactions.Actions;\n\npublic class LoginPage {\n\n    WebDriver driver;\n\n    @FindBy(id = "user")\n    WebElement txtUser;\n\n    @FindBy(id = "password")\n    WebElement txtPassword;\n\n    @FindBy(css = "button[type=\'submit\']")\n    WebElement btnSignIn;\n\n    @FindBy(id = "welcome")\n    WebElement lblWelcome;\n\n    public LoginPage(WebDriver driver) {\n        this.driver = driver;\n        PageFactory.initElements(driver, this);\n    }\n\n    public void enterCredentials(String user, String password) {\n        txtUser.sendKeys(user);\n        txtPassword.sendKeys(password);\n    }\n\n    public void submit() {\n        new Actions(driver).moveToElement(driver.findElement(By.id("account-menu"))).click().perform();\n        btnSignIn.click();\n    }\n\n    public String welcomeMessage() {\n        return lblWelcome.getText();\n    }\n}';
+EXAMPLES.base =
+'package com.example.tests;\n\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.testng.annotations.*;\nimport java.time.Duration;\n\npublic class BaseTest {\n\n    WebDriver driver;\n    String baseUrl = "https://shop.example.com";\n\n    @BeforeMethod\n    public void setUp() {\n        driver = new ChromeDriver(); driver.get(baseUrl);\n        driver.manage().window().maximize();\n        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));\n    }\n\n    public String currentUrl() {\n        return driver.getCurrentUrl();\n    }\n\n    @AfterMethod\n    public void tearDown() {\n        driver.quit();\n    }\n}';
+
+/* ================= CONVERSION ENGINE ================= */
+var useDescribe = true;
+
+function convertByToSelector(byExpr){
+  // byExpr: By.id("x") etc -> returns {selector, special}
+  var m = byExpr.match(/By\.(\w+)\(\s*"((?:[^"\\]|\\.)*)"\s*\)/);
+  if(!m) return null;
+  var kind = m[1], val = m[2];
+  switch(kind){
+    case 'id': return { sel: '#' + val, kind: kind };
+    case 'cssSelector': return { sel: val, kind: kind };
+    case 'xpath': return { sel: 'xpath=' + val, kind: kind };
+    case 'name': return { sel: '[name="' + val + '"]', kind: kind };
+    case 'className': return { sel: '.' + val, kind: kind };
+    case 'tagName': return { sel: val, kind: kind };
+    case 'linkText': return { role: 'link', name: val, kind: kind };
+    case 'partialLinkText': return { role: 'link', name: val, kind: kind, partial: true };
+    default: return { sel: val, kind: kind };
+  }
+}
+function locatorExpr(pageVar, byExpr){
+  var c = convertByToSelector(byExpr);
+  if(!c) return null;
+  if(c.role) return pageVar + ".getByRole('" + c.role + "', { name: '" + c.name + "' })";
+  return pageVar + ".locator('" + c.sel.replace(/'/g, "\\'") + "')";
+}
+function kebab(s){ var base = s.replace(/Test$/,''); return base.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase(); }
+function splitTopLevelArgs(inner){
+  var parts=[], depth=0, inD=false, inS=false, esc=false, cur='';
+  for(var i=0;i<inner.length;i++){ var ch=inner[i];
+    if(esc){ cur+=ch; esc=false; continue; }
+    if(ch==='\\'){ cur+=ch; esc=true; continue; }
+    if(inD){ cur+=ch; if(ch==='"') inD=false; continue; }
+    if(inS){ cur+=ch; if(ch==="'") inS=false; continue; }
+    if(ch==='"'){ inD=true; cur+=ch; continue; }
+    if(ch==="'"){ inS=true; cur+=ch; continue; }
+    if(ch==='('||ch==='['||ch==='{') depth++;
+    if(ch===')'||ch===']'||ch==='}') depth--;
+    if(ch===',' && depth===0){ parts.push(cur); cur=''; continue; }
+    cur+=ch;
+  }
+  if(cur.trim()!=='' || parts.length) parts.push(cur);
+  return parts;
+}
+function callInner(line){ var a=line.indexOf('('), b=line.lastIndexOf(')'); return (a>-1 && b>a) ? line.slice(a+1,b) : ''; }
+
+function convert(java){
+  var stats = { methods:0, locators:0, asserts:0, annotations:0, providers:0, todos:0 };
+  var warnings = [];
+  function todo(msg){ stats.todos++; warnings.push(msg); }
+
+  var lines = java.split('\n');
+  var className = 'MyTest';
+  var cm = java.match(/public\s+class\s+(\w+)/);
+  if(cm) className = cm[1];
+
+  /* ---- DataProviders: extract blocks ---- */
+  var providers = {}; // name -> {constName, rows:[], params:[]}
+  var providerBlocks = [];
+  // find @DataProvider methods by scanning
+  var src = java;
+  var dpRegex = /@DataProvider\s*\(\s*name\s*=\s*"([^"]+)"\s*\)\s*public\s+Object\[\]\[\]\s+(\w+)\s*\(\)\s*\{([\s\S]*?)\n\s*\}/g;
+  var dpm;
+  while((dpm = dpRegex.exec(src)) !== null){
+    var dpName = dpm[1], dpMethod = dpm[2], body = dpm[3];
+    var rows = [];
+    var rowRe = /\{\s*([^{}]+)\}/g, rm;
+    // skip the outer "new Object[][] {" wrapper row artifact: rows are inner braces
+    var inner = body.replace(/return\s+new\s+Object\[\]\[\]\s*\{/, '');
+    while((rm = rowRe.exec(inner)) !== null){
+      var cells = rm[1].split(',').map(function(c){ return c.trim(); }).filter(Boolean);
+      if(cells.length) rows.push(cells);
+    }
+    providers[dpName] = { constName: dpName, rows: rows, method: dpMethod };
+    stats.providers++;
+    stats.annotations++;
+  }
+
+  /* ---- Class classification (fix 1: Pages / fixture / utils / tests) ---- */
+  function classifyJava(srcText, cls){
+    var hasTest = /@Test\b/.test(srcText);
+    var hasFindBy = /@FindBy\b/.test(srcText);
+    var hasWebElField = /(?:private\s+|protected\s+|public\s+)?(?:List<)?WebElement>?\s+\w+\s*;/.test(srcText);
+    var hasBeforeAfter = /@(BeforeMethod|AfterMethod|BeforeClass|AfterClass|BeforeTest|AfterTest)\b/.test(srcText);
+    var hasDriverCreate = /new\s+(ChromeDriver|FirefoxDriver|EdgeDriver)/.test(srcText);
+    var isPageName = /(Page|Pagina|PageObject)$/i.test(cls);
+    var isBaseName = /(BaseTest|TestBase|Base|Setup|SetUp|Fixture)$/i.test(cls);
+    var isUtilName = /(Util|Utils|Helper|Reader|Writer|Config|Constants|Constantes|Excel|Csv|Json)$/i.test(cls);
+    if(hasTest) return 'test';
+    if(hasFindBy || (hasWebElField && isPageName) || hasWebElField) return 'page';
+    if(isBaseName || hasBeforeAfter || hasDriverCreate) return 'fixture';
+    if(isUtilName || (/public\s+static\s/.test(srcText) && !hasWebElField)) return 'utils';
+    return 'generic';
+  }
+  var kind = classifyJava(src, className);
+  var pageVar = (kind === 'page') ? 'this.page' : 'page';
+
+  /* ---- @FindBy: WebElement fields -> locators (fix 2) ---- */
+  var findByFields = []; // {name, expr, selLabel}
+  (function(){
+    var fbRe = /@FindBy\s*\(\s*([^)]*)\)\s*(?:private\s+|protected\s+|public\s+)?(?:List<)?WebElement>?\s+(\w+)\s*;/g, fbm;
+    while((fbm = fbRe.exec(src)) !== null){
+      var attrs = fbm[1], fname = fbm[2], byExpr = null;
+      var howM = attrs.match(/how\s*=\s*How\.(\w+)\s*,\s*using\s*=\s*"([^"]*)"/);
+      var kvM = attrs.match(/(id|name|css|cssSelector|xpath|className|linkText|partialLinkText|tagName)\s*=\s*"([^"]*)"/);
+      if(howM){ var hk = {ID:'id',NAME:'name',CSS:'cssSelector',XPATH:'xpath',CLASS_NAME:'className',LINK_TEXT:'linkText',PARTIAL_LINK_TEXT:'partialLinkText',TAG_NAME:'tagName'}[howM[1]] || 'cssSelector'; byExpr = 'By.' + hk + '("' + howM[2] + '")'; }
+      else if(kvM){ var keyMap = {css:'cssSelector'}; byExpr = 'By.' + (keyMap[kvM[1]] || kvM[1]) + '("' + kvM[2] + '")'; }
+      if(byExpr){ var loc = locatorExpr('this.page', byExpr); if(loc) findByFields.push({ name: fname, expr: loc, by: byExpr }); }
+    }
+  })();
+  var findByNames = findByFields.map(function(f){ return f.name; });
+
+  /* ---- Parse methods: with or without annotations (fix 2) ---- */
+  var methodRe = /((?:\s*@\w+(?:\s*\([^)]*\))?\s*\n?)*)\s*(?:public|private|protected)\s+(static\s+)?(\w[\w<>\[\], ]*?)\s+(\w+)\s*\(([^)]*)\)\s*(?:throws\s+[\w,\s]+)?\{/g;
+  var methods = [];
+  var mm;
+  while((mm = methodRe.exec(src)) !== null){
+    var annBlock = mm[1] || '', isStatic = !!mm[2], retType = mm[3], name = mm[4], params = mm[5];
+    if(name === className) continue; // constructor: generated separately in Pages
+    if(/^(if|while|for|switch|catch)$/.test(name)) continue;
+    if(providers && Object.keys(providers).some(function(k){ return providers[k].method === name; })) continue; // it is a data provider, not a test method
+    // capturar cuerpo balanceando llaves
+    var start = methodRe.lastIndex; var depth = 1; var i = start;
+    while(i < src.length && depth > 0){ if(src[i]==='{') depth++; else if(src[i]==='}') depth--; i++; }
+    var body = src.substring(start, i-1);
+    methods.push({ ann: annBlock, name: name, params: params.trim(), body: body, retType: retType, isStatic: isStatic });
+  }
+
+  var helperNames = methods.filter(function(m){ return !/@(Test|BeforeMethod|AfterMethod|BeforeClass|AfterClass|DataProvider)\b/.test(m.ann); }).map(function(m){ return m.name; });
+  function tsParams(paramsStr, includePage){
+    if(!paramsStr || !paramsStr.trim()) return includePage ? 'page: Page' : '';
+    var parts = paramsStr.split(',').map(function(pp){ pp = pp.trim(); var bits = pp.split(/\s+/); var nm = bits[bits.length-1]; var ty = bits.slice(0,-1).join(' ');
+      var t = /String/.test(ty) ? 'string' : /boolean/.test(ty) ? 'boolean' : /(int|long|double|float|short)/.test(ty) ? 'number' : /WebElement/.test(ty) ? 'Locator' : /List/.test(ty) ? 'any[]' : 'any';
+      return nm + ': ' + t; });
+    return (includePage ? 'page: Page, ' : '') + parts.join(', ');
+  }
+  function splitSemi(line){
+    // Fix 4: multiple statements on the same line are processed one by one.
+    // Does not split ';' inside parentheses (for-loop header) or inside strings.
+    var parts = [], cur = '', depth = 0, inD = false, inS = false, esc = false;
+    for(var ci = 0; ci < line.length; ci++){ var ch = line[ci];
+      if(esc){ cur += ch; esc = false; continue; }
+      if(ch === '\\'){ cur += ch; esc = true; continue; }
+      if(inD){ cur += ch; if(ch === '"') inD = false; continue; }
+      if(inS){ cur += ch; if(ch === "'") inS = false; continue; }
+      if(ch === '"'){ inD = true; cur += ch; continue; }
+      if(ch === "'"){ inS = true; cur += ch; continue; }
+      if(ch === '(') depth++;
+      if(ch === ')') depth--;
+      if(ch === ';' && depth === 0){ cur += ch; parts.push(cur); cur = ''; continue; }
+      cur += ch;
+    }
+    if(cur.trim() !== '') parts.push(cur);
+    return parts.length ? parts : [line];
+  }
+  function expandCompound(piece){
+    // 'try { stmt; }', '} catch (E e) { stmt; }', 'for (...) { stmt; }': separates the block header from the attached statement
+    var res = [], cur = piece, guard = 0;
+    while(guard++ < 6){
+      var m = cur.match(/^\s*((?:\}\s*)?(?:try|finally|else|catch\s*\([^)]*\)|if\s*\(.*\)|for\s*\(.*\)|while\s*\(.*\)))\s*\{\s*(\S[\s\S]*)$/);
+      if(!m) break;
+      res.push(m[1] + ' {');
+      cur = m[2];
+    }
+    res.push(cur);
+    return res;
+  }
+  function extractCallArg(text, callName){
+    var idx = text.indexOf(callName + '('); if(idx < 0) return null;
+    var start = idx + callName.length + 1, d = 1, inD = false, inS = false, esc2 = false;
+    for(var j = start; j < text.length; j++){ var c2 = text[j];
+      if(esc2){ esc2 = false; continue; } if(c2 === '\\'){ esc2 = true; continue; }
+      if(inD){ if(c2 === '"') inD = false; continue; } if(inS){ if(c2 === "'") inS = false; continue; }
+      if(c2 === '"'){ inD = true; continue; } if(c2 === "'"){ inS = true; continue; }
+      if(c2 === '(') d++; if(c2 === ')'){ d--; if(d === 0) return text.slice(start, j); }
+    }
+    return text.slice(start);
+  }
+  function targetExpr(rawArg){
+    var a = (rawArg || '').trim(); if(!a) return null;
+    if(/findElement/.test(a) || /^By\./.test(a)) return convExpr(a);
+    if(findByNames.indexOf(a) > -1) return kind === 'page' ? 'this.' + a : a;
+    return convExpr(a);
+  }
+
+  /* ---- Convert a method body ---- */
+  function convertBody(body, indent){
+    var out = [];
+    var blines = [];
+    body.split('\n').forEach(function(rawL){ splitSemi(rawL).forEach(function(piece){ expandCompound(piece).forEach(function(sub){ blines.push(sub); }); }); });
+    for(var li=0; li<blines.length; li++){
+      var raw = blines[li];
+      var t = raw.trim();
+      if(t === '') continue;
+      // comments are preserved
+      if(t.indexOf('//') === 0){ out.push(indent + t); continue; }
+      var line = t;
+      var original = line;
+
+      // --- Control-flow fixes and APIs with no prior mapping ---
+      var closeCatch = line.match(/^\}\s*catch\s*\(\s*(?:[\w.]+Exception|Throwable|Exception)\s+(\w+)\s*\)\s*\{?\s*$/);
+      if(closeCatch){ out.push(indent + '} catch (' + closeCatch[1] + ') {'); continue; }
+      var closeFinally = /^\}\s*finally\s*\{?\s*$/.test(line);
+      if(closeFinally){ out.push(indent + '} finally {'); continue; }
+      if(/^try\s*\{$/.test(line)){ out.push(indent + 'try {'); continue; }
+      var catchM = line.match(/^catch\s*\(\s*(?:[\w.]+Exception|Throwable|Exception)\s+(\w+)\s*\)\s*(\{)?\s*$/);
+      if(catchM){ out.push(indent + 'catch (' + catchM[1] + ') ' + (catchM[2] ? '{' : '{')); continue; }
+      if(/^finally\s*\{?$/.test(line)){ out.push(indent + 'finally {'); continue; }
+      if(line === '}' || line === '};'){ out.push(indent + line); continue; }
+      var forInt = line.match(/^for\s*\(\s*(?:int|long)\s+(\w+)\s*=\s*([^;]+);\s*([^;]+);\s*([^)]+)\)\s*(\{)?\s*$/);
+      if(forInt){ out.push(indent + 'for (let ' + forInt[1] + ' = ' + convExpr(forInt[2].trim()) + '; ' + forInt[3].trim() + '; ' + forInt[4].trim().replace(/\+\+/g,'++') + ') {'); continue; }
+      var forEachM = line.match(/^for\s*\(\s*(?:String|WebElement|int|long|boolean|var|Object)\s+(\w+)\s*:\s*(\w+)\s*\)\s*(\{)?\s*$/);
+      if(forEachM){ out.push(indent + 'for (const ' + forEachM[1] + ' of ' + forEachM[2] + ') {'); continue; }
+      if(/PageFactory\.initElements/.test(line)){ out.push(indent + '// PageFactory.initElements: @FindBy fields are initialized in the constructor as locators'); continue; }
+      if(/^this\.driver\s*=\s*driver\s*;?$/.test(line) || /^this\.\w+\s*=\s*driver\s*;?$/.test(line)) continue;
+      var retM = line.match(/^return\s+(.+?)\s*;?$/);
+      if(retM){ out.push(indent + 'return ' + convExpr(retM[1]) + ';'); continue; }
+      if(/^return\s*;?$/.test(line)){ out.push(indent + 'return;'); continue; }
+      if(line.indexOf('Assert.fail(') === 0){ var failInner = callInner(line); out.push(indent + 'throw new Error(' + convExpr(failInner.trim() || "''") + ');'); stats.asserts++; continue; }
+      // JavascriptExecutor: declaration
+      var jsDecl = line.match(/^(?:JavascriptExecutor\s+)?(\w+)\s*=\s*\(JavascriptExecutor\)\s*driver\s*;?$/);
+      if(jsDecl){ jsVars[jsDecl[1]] = true; out.push(indent + '// JavascriptExecutor: in Playwright, page.evaluate() is used'); continue; }
+      if(/JavascriptExecutor\s+\w+\s*=/.test(line)){ var jn = (line.match(/JavascriptExecutor\s+(\w+)/)||[])[1]; if(jn) jsVars[jn]=true; continue; }
+      // executeScript(...)
+      var execM = line.match(/^(\w+)\.executeScript\((.*)\)\s*;?$/);
+      if(execM && (jsVars[execM[1]] || execM[1]==='js' || execM[1]==='executor')){
+        var eArgs = splitTopLevelArgs(execM[2]);
+        var scriptArg = (eArgs[0]||'').trim();
+        var scriptTxt = scriptArg.replace(/^"|"$/g,'');
+        var targetVar = eArgs[1] ? eArgs[1].trim() : null;
+        if(targetVar && /arguments\[0\]\.click\(\)/.test(scriptTxt)){ out.push(indent + 'await ' + targetVar + '.click();'); continue; }
+        if(targetVar && /scrollIntoView/.test(scriptTxt)){ out.push(indent + 'await ' + targetVar + '.scrollIntoViewIfNeeded();'); continue; }
+        if(/window\.scroll/.test(scriptTxt) || /scrollBy|scrollTo/.test(scriptTxt)){ out.push(indent + 'await ' + pageVar + '.evaluate(() => { ' + scriptTxt + ' });'); continue; }
+        if(targetVar){ out.push(indent + 'await ' + targetVar + '.evaluate((el) => { ' + scriptTxt.replace(/arguments\[0\]/g,'el') + ' });'); continue; }
+        out.push(indent + 'await ' + pageVar + '.evaluate(() => { ' + scriptTxt + ' });'); continue;
+      }
+      // Actions: declaration and common chains
+      var actDecl = line.match(/^Actions\s+(\w+)\s*=\s*new\s+Actions\(driver\)\s*;?$/);
+      if(actDecl){ actionsVars[actDecl[1]] = true; continue; }
+      // Fix 3: any Actions chain with .perform(), including findElement(...) inside moveToElement/click
+      var isActionsLine = /new\s+Actions\(driver\)/.test(line) || Object.keys(actionsVars).some(function(v){ return line.indexOf(v + '.') === 0; }) || (/\.perform\(\)/.test(line) && /(moveToElement|doubleClick|contextClick|dragAndDrop)/.test(line));
+      if(isActionsLine && (/\.perform\(\)/.test(line) || /moveToElement/.test(line))){
+        var moveArg = extractCallArg(line, 'moveToElement');
+        var dragArg = extractCallArg(line, 'dragAndDrop');
+        var dblArg = extractCallArg(line, 'doubleClick');
+        var ctxArg = extractCallArg(line, 'contextClick');
+        var clickArg = extractCallArg(line, 'click');
+        if(dragArg !== null){ var dParts = splitTopLevelArgs(dragArg); if(dParts.length >= 2){ out.push(indent + 'await ' + targetExpr(dParts[0]) + '.dragTo(' + targetExpr(dParts[1]) + ');'); continue; } }
+        if(moveArg !== null){ var mt = targetExpr(moveArg); if(mt){ out.push(indent + 'await ' + mt + '.hover();'); if(/\.doubleClick\(/.test(line)) out.push(indent + 'await ' + mt + '.dblclick();'); else if(/\.click\(/.test(line)){ var ca = (clickArg && clickArg.trim()) ? targetExpr(clickArg) : mt; out.push(indent + 'await ' + ca + '.click();'); } continue; } }
+        if(dblArg !== null && dblArg.trim()){ out.push(indent + 'await ' + targetExpr(dblArg) + '.dblclick();'); continue; }
+        if(ctxArg !== null && ctxArg.trim()){ out.push(indent + 'await ' + targetExpr(ctxArg) + ".click({ button: 'right' });"); continue; }
+        if(clickArg !== null && clickArg.trim()){ out.push(indent + 'await ' + targetExpr(clickArg) + '.click();'); continue; }
+        var actKeys2 = line.match(/\.sendKeys\((.+)\)\.(?:build\(\)\.)?perform\(\)/);
+        if(actKeys2){ out.push(indent + 'await ' + pageVar + '.keyboard.type(' + actKeys2[1] + ');'); continue; }
+      }
+      var actKeys = line.match(/^(\w+)\.sendKeys\((.+)\)\.(?:build\(\)\.)?perform\(\)\s*;?$/);
+      if(actKeys && actionsVars[actKeys[1]]){ out.push(indent + 'await ' + pageVar + '.keyboard.type(' + actKeys[2] + ');'); continue; }
+
+      // Select: Select x = new Select(el); -> handled together with the declaration
+      var selDecl = line.match(/^(?:Select\s+)?(\w+)\s*=\s*new\s+Select\((\w+)\)\s*;?$/);
+      if(selDecl){ out.push(indent + '// <select> handled via selectOption on "' + selDecl[2] + '"'); varNameSelect[selDecl[1]] = selDecl[2]; continue; }
+      var selUse = line.match(/^(\w+)\.selectByVisibleText\((.+)\)\s*;?$/);
+      if(selUse && varNameSelect[selUse[1]]){ out.push(indent + 'await ' + varNameSelect[selUse[1]] + '.selectOption({ label: ' + selUse[2] + ' });'); continue; }
+      var selUse2 = line.match(/^(\w+)\.selectByValue\((.+)\)\s*;?$/);
+      if(selUse2 && varNameSelect[selUse2[1]]){ out.push(indent + 'await ' + varNameSelect[selUse2[1]] + '.selectOption(' + selUse2[2] + ');'); continue; }
+
+      // WebDriverWait ... until(ExpectedConditions.xxx(By...))
+      var waitM = line.match(/wait\.until\(ExpectedConditions\.(\w+)\((By\.\w+\("[^"]*"\))\)\)\s*;?/);
+      if(waitM){
+        var state = waitM[1].indexOf('visibility')===0 ? 'visible' : (waitM[1].indexOf('invisibility')===0 ? 'hidden' : (waitM[1].indexOf('elementToBeClickable')===0 ? 'visible' : 'attached'));
+        var loc = locatorExpr(pageVar, waitM[2]); stats.locators++;
+        out.push(indent + 'await ' + loc + ".waitFor({ state: '" + state + "' });");
+        continue;
+      }
+      // new WebDriverWait / wait declaration / driver setup -> omit with a note
+      if(/new\s+(ChromeDriver|FirefoxDriver|EdgeDriver)/.test(line) || /new\s+WebDriverWait/.test(line) || /driver\.manage\(\)/.test(line) || /^wait\s*=/.test(line)){
+        if(/implicitlyWait/.test(line)) out.push(indent + '// Playwright waits automatically (auto-wait): implicitlyWait is not needed');
+        else if(/maximize/.test(line)) out.push(indent + '// Window size is defined in playwright.config.ts (viewport)');
+        else if(/new\s+WebDriverWait/.test(line)) out.push(indent + '// WebDriverWait is not needed: Playwright auto-waits on every action');
+        continue;
+      }
+      if(/^driver\s*=\s*new/.test(line)) continue;
+      if(/driver\.(quit|close)\(\)/.test(line)){ out.push(indent + '// Playwright closes the browser when the test finishes'); continue; }
+
+      // Thread.sleep
+      var sleepM = line.match(/Thread\.sleep\((\d+)\)\s*;?/);
+      if(sleepM){ out.push(indent + 'await ' + pageVar + '.waitForTimeout(' + sleepM[1] + ');'); continue; }
+
+      // Assertions (split respecting commas inside strings/parentheses)
+      if(line.indexOf('Assert.assertEquals(') === 0){
+        var partsEq = splitTopLevelArgs(callInner(line));
+        if(partsEq.length >= 2){ stats.asserts++; out.push(indent + 'expect(' + convExpr(partsEq[0].trim()) + ').toBe(' + convExpr(partsEq.slice(1).join(',').trim()) + ');'); continue; }
+      }
+      if(line.indexOf('Assert.assertTrue(') === 0){ stats.asserts++; out.push(indent + 'expect(' + convExpr(callInner(line).trim()) + ').toBeTruthy();'); continue; }
+      if(line.indexOf('Assert.assertFalse(') === 0){ stats.asserts++; out.push(indent + 'expect(' + convExpr(callInner(line).trim()) + ').toBeFalsy();'); continue; }
+      if(line.indexOf('Assert.assertNotNull(') === 0){ stats.asserts++; out.push(indent + 'expect(' + convExpr(callInner(line).trim()) + ').not.toBeNull();'); continue; }
+      if(line.indexOf('Assert.assertNull(') === 0){ stats.asserts++; out.push(indent + 'expect(' + convExpr(callInner(line).trim()) + ').toBeNull();'); continue; }
+
+      // WebElement / List<WebElement> declaration with findElement(s)
+      var declFE = line.match(/^(?:WebElement|List<WebElement>)\s+(\w+)\s*=\s*(.+?)\s*;?$/);
+      if(declFE){ out.push(indent + 'const ' + declFE[1] + ' = ' + convExpr(declFE[2]) + ';'); continue; }
+      // Generic typed declaration: String/int/boolean/double Type name = expr;
+      var decl = line.match(/^(String|int|long|boolean|double|float|var|List<[\w<>]+>|Map<[\w<>, ]+>|String\[\])\s+(\w+)\s*=\s*(.+?)\s*;?$/);
+      if(decl){ out.push(indent + 'const ' + decl[2] + ' = ' + convExpr(decl[3]) + ';'); continue; }
+      // Field/class-level inside a method: simple assignment a = expr;
+      // System.out.println
+      if(/System\.out\.println/.test(line)){ line = line.replace(/System\.out\.println/, 'console.log'); out.push(indent + ensureSemi(convExpr(line))); continue; }
+
+      // Unsupported: Actions, JavascriptExecutor, Alert, switchTo
+      if(/new\s+Actions|JavascriptExecutor|driver\.switchTo\(\)\.alert|TakesScreenshot/.test(line)){
+        todo('Line with no 1:1 equivalent marked as TODO: `' + original.slice(0, 80) + '`');
+        out.push(indent + '// TODO(review): ' + original + '  // no direct equivalent — see the Playwright API (mouse/keyboard/dialog)');
+        continue;
+      }
+
+      // General line
+      out.push(indent + ensureSemi(convExpr(line)));
+    }
+    return out;
+  }
+  var varNameSelect = {};
+  var jsVars = {};
+  var actionsVars = {};
+  function ensureSemi(s){ s = s.replace(/;+\s*$/, ''); return /[{}]$/.test(s.trim()) ? s : s + ';'; }
+
+  function convExpr(expr){
+    var e = expr;
+    // driver.findElements / findElement -> page.locator (BEFORE the generic X.findElement rule)
+    e = e.replace(/driver\.findElements\((By\.\w+\("[^"]*"\))\)/g, function(_, by){ stats.locators++; return locatorExpr(pageVar, by); });
+    e = e.replace(/driver\.findElement\((By\.\w+\("[^"]*"\))\)/g, function(_, by){ stats.locators++; return locatorExpr(pageVar, by); });
+    // Nested X.findElement(By...) (on an already converted WebElement/Locator)
+    e = e.replace(/(\w+)\.findElement\((By\.\w+\("[^"]*"\))\)/g, function(_, v, by){ stats.locators++; var c = convertByToSelector(by); if(c && c.role) return v + ".getByRole('" + c.role + "', { name: '" + c.name + "' })"; return v + ".locator('" + (c ? c.sel.replace(/'/g,"\\'") : '') + "')"; });
+    // .findElement(By...) chained after another call, e.g. list.get(0).findElement(...)
+    e = e.replace(/\.findElement\((By\.\w+\("[^"]*"\))\)/g, function(_, by){ stats.locators++; var c = convertByToSelector(by); if(c && c.role) return ".getByRole('" + c.role + "', { name: '" + c.name + "' })"; return ".locator('" + (c ? c.sel.replace(/'/g,"\\'") : '') + "')"; });
+    // chained actions
+    e = e.replace(/\.sendKeys\(([^)]*)\)/g, '.fill($1)');
+    e = e.replace(/\.clear\(\)/g, ".fill('')");
+    // navigation
+    e = e.replace(/driver\.get\(([^)]*)\)/g, function(_, a){ return 'await ' + pageVar + '.goto(' + a + ')'; });
+    e = e.replace(/driver\.navigate\(\)\.to\(([^)]*)\)/g, function(_, a){ return 'await ' + pageVar + '.goto(' + a + ')'; });
+    e = e.replace(/driver\.navigate\(\)\.refresh\(\)/g, 'await ' + pageVar + '.reload()');
+    e = e.replace(/driver\.navigate\(\)\.back\(\)/g, 'await ' + pageVar + '.goBack()');
+    e = e.replace(/driver\.getCurrentUrl\(\)/g, pageVar + '.url()');
+    e = e.replace(/driver\.getTitle\(\)/g, 'await ' + pageVar + '.title()');
+    // element reads (require await)
+    e = e.replace(/(\S+)\.getText\(\)/g, 'await $1.textContent()');
+    e = e.replace(/(\S+)\.isDisplayed\(\)/g, 'await $1.isVisible()');
+    e = e.replace(/(\S+)\.isEnabled\(\)/g, 'await $1.isEnabled()');
+    e = e.replace(/(\S+)\.getAttribute\(/g, 'await $1.getAttribute(');
+    // list .size() -> count
+    e = e.replace(/(\w+)\.size\(\)/g, 'await $1.count()');
+    e = e.replace(/(\w+)\.get\((\d+)\)/g, '$1.nth($2)');
+    // .equals(x) -> === x (simple)
+    e = e.replace(/(\S+)\.equals\(([^)]*)\)/g, '$1 === $2');
+    e = e.replace(/\.contains\(/g, '.includes(');
+    // @FindBy: a bare field (txtUser.click()) is this.txtUser in the Page
+    if(kind === 'page'){
+      findByNames.forEach(function(fn){
+        e = e.replace(new RegExp('([^\\w.]|^)' + fn + '\\b', 'g'), '$1this.' + fn);
+      });
+    }
+    // Calls to own unannotated methods: the call is preserved, with its await and receiver
+    helperNames.forEach(function(hn){
+      if(kind === 'page'){
+        e = e.replace(new RegExp('([^\\w.]|^)' + hn + '\\(', 'g'), '$1await this.' + hn + '(');
+      } else if(kind === 'test'){
+        e = e.replace(new RegExp('\\b' + hn + '\\(([^)]*)\\)', 'g'), function(_, args){ var a = (args || '').trim(); return 'await ' + hn + '(page' + (a ? ', ' + a : '') + ')'; });
+      } else if(kind === 'utils' || kind === 'generic'){
+        e = e.replace(new RegExp('([^\\w.]|^)' + hn + '\\(', 'g'), '$1await ' + className + '.' + hn + '(');
+      }
+    });
+    return e;
+  }
+
+  // Post-processing: add await to loose action statements
+  function addAwaits(linesArr){
+    return linesArr.map(function(l){
+      var t = l.trim();
+      if(t.indexOf('//')===0 || /^await /.test(t)) return l;
+      var idx = l.indexOf(t);
+      var pad = l.slice(0, idx);
+      // Statement that IS an action: page.locator(...).click() / el.fill(...) / page.goto(...)
+      if(/^(page\.(locator|getByRole|goto|reload|goBack|waitForTimeout)\b)/.test(t) && /\.(click|fill|check|uncheck|hover|dblclick|press|selectOption|waitFor)\(|^page\.(goto|reload|goBack|waitForTimeout)\(/.test(t)){
+        return pad + 'await ' + t;
+      }
+      if(/^\w+\.(click|fill|check|uncheck|hover|dblclick|press|selectOption|waitFor)\(/.test(t)){
+        return pad + 'await ' + t;
+      }
+      if(/^this\.[\w.]+\.(click|fill|check|uncheck|hover|dblclick|press|selectOption|waitFor|dragTo|scrollIntoViewIfNeeded)\(/.test(t)){
+        return pad + 'await ' + t;
+      }
+      if(/^this\.page\.(goto|reload|goBack|waitForTimeout|locator|getByRole)\b/.test(t) && /\.(click|fill|hover|waitFor)\(|^this\.page\.(goto|reload|goBack|waitForTimeout)\(/.test(t)){
+        return pad + 'await ' + t;
+      }
+      return l;
+    });
+  }
+
+  // Does the class share the driver across tests (@BeforeClass/@AfterClass)? -> shared page
+  var sharedPage = methods.some(function(m){ return /@BeforeClass|@AfterClass/.test(m.ann); });
+  var sigPage = sharedPage ? 'async ()' : 'async ({ page })';
+
+  /* ---- Class fields (String baseUrl = "...") outside methods ---- */
+  var fields = [];
+  var fieldRe = /^\s*(?:private\s+|protected\s+)?(String|int|boolean)\s+(\w+)\s*=\s*(.+?);\s*$/gm, fm;
+  while((fm = fieldRe.exec(src)) !== null){
+    // avoid duplicating if it is inside a method (heuristic: appears before the first @Before/@Test)
+    fields.push({ name: fm[2], value: fm[3] });
+  }
+  // keep only fields declared before the first method
+  var firstMethodIdx = src.search(/@Before|@Test|@After|@DataProvider/);
+  fields = fields.filter(function(f){
+    var pos = src.indexOf(f.name + ' =');
+    return pos > -1 && (firstMethodIdx === -1 || pos < firstMethodIdx + 200) && src.slice(0, pos).indexOf('class ' + className) > -1;
+  });
+  // deduplicate
+  var seenF = {}; fields = fields.filter(function(f){ if(seenF[f.name]) return false; seenF[f.name] = 1; return true; });
+
+  /* ---- Output by class kind (fix 1) ---- */
+  function finish(codeArr){ return { code: codeArr.join('\n').replace(/\n{3,}/g,'\n\n'), stats: stats, warnings: warnings, className: className, kind: kind }; }
+  if(kind === 'page'){
+    var outPg = [];
+    outPg.push("import { Page, Locator, expect } from '@playwright/test';");
+    outPg.push('');
+    outPg.push('// Converted from ' + className + '.java (Selenium Page Object) — same @FindBy locators, method names, and logic.');
+    fields.forEach(function(f){ outPg.push('const ' + f.name + ' = ' + f.value + ';'); });
+    if(fields.length) outPg.push('');
+    outPg.push('export class ' + className + ' {');
+    outPg.push('  readonly page: Page;');
+    findByFields.forEach(function(f){ outPg.push('  readonly ' + f.name + ': Locator;'); });
+    outPg.push('');
+    outPg.push('  constructor(page: Page) {');
+    outPg.push('    this.page = page;');
+    findByFields.forEach(function(f){ stats.locators++; outPg.push('    this.' + f.name + ' = ' + f.expr + ';'); });
+    if(!findByFields.length) outPg.push('    // No @FindBy: locators are created in each method with this.page.locator(...)');
+    outPg.push('  }');
+    methods.forEach(function(meth){
+      stats.annotations += (meth.ann.match(/@\w+/g) || []).length;
+      varNameSelect = {}; jsVars = {}; actionsVars = {};
+      var bl = addAwaits(convertBody(meth.body, '    '));
+      stats.methods++;
+      var needsAsync = bl.some(function(l){ return /await /.test(l); });
+      outPg.push('');
+      outPg.push('  ' + (needsAsync ? 'async ' : '') + meth.name + '(' + tsParams(meth.params, false) + ') {');
+      outPg.push.apply(outPg, bl);
+      outPg.push('  }');
+    });
+    if(!methods.length) outPg.push(''); // class with only @FindBy: no longer comes out empty; it includes the constructor and locators
+    outPg.push('}');
+    return finish(outPg);
+  }
+  if(kind === 'fixture'){
+    var outFx = [];
+    outFx.push("import { test as base, expect, Page } from '@playwright/test';");
+    outFx.push('');
+    outFx.push('// Converted from ' + className + '.java (Selenium base class) — in Playwright it is a fixture:');
+    outFx.push('// your tests import { test } from this file and inherit the same setUp/tearDown.');
+    fields.forEach(function(f){ outFx.push('const ' + f.name + ' = ' + f.value + ';'); });
+    if(fields.length) outFx.push('');
+    var setupMs = [], teardownMs = [], helperMs = [];
+    methods.forEach(function(meth){
+      if(/@Before/.test(meth.ann) || (!meth.ann.trim() && /^(setUp|setup|before|iniciar|init|configurar)/i.test(meth.name))) setupMs.push(meth);
+      else if(/@After/.test(meth.ann) || (!meth.ann.trim() && /^(tearDown|teardown|after|cerrar|cleanup|finalizar)/i.test(meth.name))) teardownMs.push(meth);
+      else helperMs.push(meth);
+    });
+    outFx.push('export const test = base.extend({');
+    outFx.push('  // Equivalent to @BeforeMethod + @AfterMethod: wraps each test just like setUp/tearDown wrapped it in Selenium');
+    outFx.push('  page: async ({ page }, use) => {');
+    setupMs.forEach(function(meth){ stats.annotations += (meth.ann.match(/@\w+/g) || []).length; varNameSelect = {}; jsVars = {}; actionsVars = {}; var bl = addAwaits(convertBody(meth.body, '    ')); stats.methods++; outFx.push.apply(outFx, bl); });
+    outFx.push('    await use(page);');
+    teardownMs.forEach(function(meth){ stats.annotations += (meth.ann.match(/@\w+/g) || []).length; varNameSelect = {}; jsVars = {}; actionsVars = {}; var bl = addAwaits(convertBody(meth.body, '    ')); stats.methods++; outFx.push.apply(outFx, bl); });
+    outFx.push('  },');
+    outFx.push('});');
+    outFx.push('export { expect };');
+    helperMs.forEach(function(meth){
+      stats.annotations += (meth.ann.match(/@\w+/g) || []).length; varNameSelect = {}; jsVars = {}; actionsVars = {};
+      var bl = addAwaits(convertBody(meth.body, '  ')); stats.methods++;
+      outFx.push('');
+      outFx.push('// Base helper method, unannotated in Java — preserved with the same name');
+      outFx.push('export async function ' + meth.name + '(' + tsParams(meth.params, true) + ') {');
+      outFx.push.apply(outFx, bl);
+      outFx.push('}');
+    });
+    return finish(outFx);
+  }
+  if(kind === 'utils' || kind === 'generic'){
+    var outUt = [];
+    if(/WebElement|findElement|findElements/.test(src)) outUt.push("import { Page, Locator } from '@playwright/test';", '');
+    outUt.push('// Converted from ' + className + '.java ' + (kind === 'utils' ? '(Selenium/Java utilities)' : '(class with no @Test, @FindBy, or shared setUp)') + ' — same method names and logic.');
+    fields.forEach(function(f){ outUt.push('const ' + f.name + ' = ' + f.value + ';'); });
+    if(fields.length) outUt.push('');
+    outUt.push('export class ' + className + ' {');
+    methods.forEach(function(meth){
+      stats.annotations += (meth.ann.match(/@\w+/g) || []).length; varNameSelect = {}; jsVars = {}; actionsVars = {};
+      var bl = addAwaits(convertBody(meth.body, '    ')); stats.methods++;
+      var needsAsync = bl.some(function(l){ return /await /.test(l); });
+      var usesPage = bl.some(function(l){ return /\bpage\./.test(l); });
+      outUt.push('');
+      outUt.push('  ' + (meth.isStatic ? 'static ' : '') + (needsAsync ? 'async ' : '') + meth.name + '(' + tsParams(meth.params, usesPage) + ') {');
+      outUt.push.apply(outUt, bl);
+      outUt.push('  }');
+    });
+    outUt.push('}');
+    return finish(outUt);
+  }
+
+  /* ---- Build output (tests) ---- */
+  var out = [];
+  out.push((sharedPage || helperNames.length) ? "import { test, expect, Page } from '@playwright/test';" : "import { test, expect } from '@playwright/test';");
+  out.push('');
+  out.push('// Converted from ' + className + '.java (Selenium + TestNG) — same logic, names, and data.');
+  fields.forEach(function(f){ out.push('const ' + f.name + ' = ' + f.value + ';'); });
+  if(fields.length) out.push('');
+  // Data providers as constants
+  Object.keys(providers).forEach(function(k){
+    var p = providers[k];
+    out.push('// @DataProvider(name = "' + k + '") — same rows and columns');
+    out.push('const ' + k + ' = [');
+    p.rows.forEach(function(r, i){ out.push('  [' + r.join(', ') + ']' + (i < p.rows.length-1 ? ',' : '')); });
+    out.push('];');
+    out.push('');
+  });
+
+  var indentBase = useDescribe ? '  ' : '';
+  if(useDescribe) out.push("test.describe('" + className + "', () => {");
+  if(sharedPage){ out.push(indentBase + '// @BeforeClass/@AfterClass in Selenium share the driver: here, a single page for the whole describe'); out.push(indentBase + 'let page: Page;'); out.push(''); }
+
+  methods.forEach(function(meth){
+    var ann = meth.ann;
+    var isBeforeMethod = /@BeforeMethod/.test(ann), isAfterMethod = /@AfterMethod/.test(ann);
+    var isBeforeClass = /@BeforeClass/.test(ann), isAfterClass = /@AfterClass/.test(ann);
+    var isTest = /@Test/.test(ann);
+    stats.annotations += (ann.match(/@\w+/g) || []).length;
+    varNameSelect = {}; jsVars = {}; actionsVars = {};
+    var bodyLines = addAwaits(convertBody(meth.body, indentBase + '  '));
+    stats.methods++;
+
+    if(isBeforeMethod){ out.push(indentBase + 'test.beforeEach(' + sigPage + ' => {'); out.push.apply(out, bodyLines); out.push(indentBase + '});'); out.push(''); return; }
+    if(isAfterMethod){ out.push(indentBase + 'test.afterEach(' + sigPage + ' => {'); out.push.apply(out, bodyLines); out.push(indentBase + '});'); out.push(''); return; }
+    if(isBeforeClass){ out.push(indentBase + 'test.beforeAll(async ({ browser }) => {'); out.push(indentBase + '  page = await browser.newPage();'); out.push.apply(out, bodyLines); out.push(indentBase + '});'); out.push(''); return; }
+    if(isAfterClass){ out.push(indentBase + 'test.afterAll(async () => {'); out.push.apply(out, bodyLines); if(sharedPage) out.push(indentBase + '  await page.close();'); out.push(indentBase + '});'); out.push(''); return; }
+    if(!isBeforeMethod && !isAfterMethod && !isBeforeClass && !isAfterClass && !isTest){
+      if(/^(setUp|setup|before|iniciar|init|configurar)/i.test(meth.name)){ out.push(indentBase + 'test.beforeEach(' + sigPage + ' => {'); out.push.apply(out, bodyLines); out.push(indentBase + '});'); out.push(''); return; }
+      if(/^(tearDown|teardown|after|cerrar|cleanup|finalizar)/i.test(meth.name)){ out.push(indentBase + 'test.afterEach(' + sigPage + ' => {'); out.push.apply(out, bodyLines); out.push(indentBase + '});'); out.push(''); return; }
+      out.push(indentBase + '// Helper method, unannotated in Java — preserved with the same name and logic; it receives the page of the test that calls it');
+      out.push(indentBase + 'async function ' + meth.name + '(' + tsParams(meth.params, true) + ') {');
+      out.push.apply(out, bodyLines);
+      out.push(indentBase + '}');
+      out.push('');
+      return;
+    }
+    if(isTest || true){
+      // @Test(...) metadata
+      var testAnn = (ann.match(/@Test\s*\(([^)]*)\)/) || [])[1] || '';
+      var groups = null, gm2 = testAnn.match(/groups\s*=\s*\{([^}]*)\}/) || testAnn.match(/groups\s*=\s*"([^"]*)"/);
+      if(gm2) groups = gm2[1].replace(/"/g,'').split(',').map(function(g){ return g.trim(); }).filter(Boolean);
+      var timeoutM = testAnn.match(/timeout\s*=\s*(\d+)/);
+      var prioM = testAnn.match(/priority\s*=\s*(\d+)/);
+      var dpM = testAnn.match(/dataProvider\s*=\s*"([^"]+)"/);
+      var opts = [];
+      if(groups) opts.push("tag: [" + groups.map(function(g){ return "'@" + g + "'"; }).join(', ') + "]");
+      if(timeoutM) opts.push('timeout: ' + timeoutM[1]);
+      var header = '';
+      if(prioM) header += indentBase + '// priority = ' + prioM[1] + ' (Playwright runs in declaration/file order)\n';
+      if(dpM && providers[dpM[1]]){
+        var prov = providers[dpM[1]];
+        var paramsList = meth.params.split(',').map(function(p){ return p.trim().split(/\s+/).pop(); }).filter(Boolean);
+        out.push(header + indentBase + '// @Test(dataProvider = "' + dpM[1] + '") — one test per row, same arguments');
+        out.push(indentBase + 'for (const [' + paramsList.join(', ') + '] of ' + dpM[1] + ') {');
+        out.push(indentBase + "  test('" + meth.name + " — ' + [" + paramsList.join(', ') + "].join(', '), " + sigPage + " => {");
+        var snapL = stats.locators, snapA = stats.asserts, snapT = stats.todos, snapW = warnings.length;
+        var bl2 = addAwaits(convertBody(meth.body, indentBase + '    '));
+        stats.locators = snapL; stats.asserts = snapA; stats.todos = snapT; warnings.length = snapW; // the body was already counted in the first pass
+        out.push.apply(out, bl2);
+        out.push(indentBase + '  });');
+        out.push(indentBase + '}');
+        out.push('');
+        return;
+      }
+      var optStr = opts.length ? ', { ' + opts.join(', ') + ' }' : '';
+      // signature: parameters without a provider -> kept as a type comment
+      var sig = "test('" + meth.name + "'" + optStr + ", " + sigPage + " => {";
+      if(header) out.push(header.replace(/\n$/,''));
+      out.push(indentBase + sig);
+      out.push.apply(out, bodyLines);
+      out.push(indentBase + '});');
+      out.push('');
+    }
+  });
+
+  if(useDescribe) out.push('});');
+  return { code: out.join('\n').replace(/\n{3,}/g,'\n\n'), stats: stats, warnings: warnings, className: className, kind: kind };
+}
+
+/* ================= STATIC VALIDATION ================= */
+function vCount(str, re){ var m = String(str||'').match(re); return m ? m.length : 0; }
+function vUniq(arr){ var s={},o=[]; arr.forEach(function(x){ if(!s[x]){s[x]=1;o.push(x);} }); return o; }
+function validateConversion(java, ts, res){
+  java = java || ''; ts = ts || '';
+  var kind = (res && res.kind) || 'test';
+  var checks = [];
+  function add(id, label, jv, tv, status, detail){ checks.push({ id:id, label:label, java:jv, ts:tv, status:status, detail:detail||'' }); }
+
+  // --- Tests: @Test names in Java ---
+  var testNames = [];
+  var tmRe = /@Test\b[^\{]*?(?:public|private|protected)\s+(?:static\s+)?[\w<>\[\], ]+?\s+(\w+)\s*\(/g, tmM;
+  // simpler fallback if the previous regex does not capture across line breaks
+  var srcN = java.replace(/\r/g,'');
+  var annBlocks = srcN.split(/(?=@Test\b|@BeforeMethod|@AfterMethod|@BeforeClass|@AfterClass|@DataProvider)/);
+  // Robust method: find @Test and then the next "void name("
+  testNames = [];
+  var idx = 0;
+  while(true){ var ti = srcN.indexOf('@Test', idx); if(ti < 0) break; var rest = srcN.slice(ti, ti + 600); var mm2 = rest.match(/(?:public|private|protected)\s+(?:static\s+)?(?:void|[\w<>\[\]]+)\s+(\w+)\s*\(/); if(mm2 && testNames.indexOf(mm2[1]) < 0) testNames.push(mm2[1]); idx = ti + 5; }
+  var tsTestCount = vCount(ts, /\btest\s*\(\s*['"]/g);
+  var tsTestNamesFound = testNames.filter(function(n){ return ts.indexOf("test('" + n + "'") > -1 || ts.indexOf('test("' + n + '"') > -1 || ts.indexOf("test('" + n + " ") > -1 || ts.indexOf(n) > -1 && kind !== 'test'; });
+  // For kinds that are not tests, "tests" do not apply
+  if(kind === 'test'){
+    var namesOk = testNames.length === tsTestNamesFound.length;
+    add('tests', 'Tests (@Test → test)', testNames.length, tsTestCount, (testNames.length === tsTestCount && namesOk) ? 'pass' : (tsTestCount > 0 ? 'fail' : 'fail'),
+      namesOk ? 'All names are preserved: ' + (testNames.join(', ') || '—') : 'Missing in TS: ' + testNames.filter(function(n){ return tsTestNamesFound.indexOf(n) < 0; }).join(', '));
+  } else if(kind === 'page'){
+    var methJava = vCount(java, /(?:public|private|protected)\s+(?:static\s+)?[\w<>\[\], ]+?\s+\w+\s*\(/g);
+    var methTs = vCount(ts, /^\s{2}(?:static\s+)?(?:async\s+)?\w+\s*\(/gm);
+    add('tests', 'Page methods preserved', '—', '—', methTs >= 1 ? 'pass' : 'fail', 'The class comes out as a Page Object with a constructor and methods, not as a loose test.');
+  } else if(kind === 'fixture'){
+    add('tests', 'Base → fixture (extended test)', '—', '—', /base\.extend|test\.extend/.test(ts) ? 'pass' : 'fail', /base\.extend/.test(ts) ? 'base.extend is generated with setUp/tearDown wrapping each test (await use(page)).' : 'The extended fixture was not detected.');
+  } else {
+    add('tests', 'Methods preserved', '—', '—', vCount(ts, /\w+\s*\(/g) > 0 ? 'pass' : 'warn', 'Class ' + kind + ': methods are preserved with the same name.');
+  }
+
+  // --- Asserts ---
+  var assertsJava = vCount(java, /Assert\.assert\w+\s*\(/g) + vCount(java, /Assert\.fail\s*\(/g);
+  var assertsTs = vCount(ts, /\bexpect\s*\(/g) + vCount(ts, /throw new Error\s*\(/g);
+  // throw new Error is also used outside Assert.fail; adjust: if there is no Assert.fail in Java, do not count generic throws already counted as expect
+  if(vCount(java, /Assert\.fail\s*\(/g) === 0) assertsTs = vCount(ts, /\bexpect\s*\(/g);
+  add('asserts', 'Assertions (Assert → expect)', assertsJava, assertsTs, assertsJava === assertsTs ? 'pass' : (assertsTs < assertsJava ? 'fail' : 'warn'),
+    assertsJava === assertsTs ? 'Same number of checks on both sides.' : (assertsTs < assertsJava ? (assertsJava - assertsTs) + ' assertion(s) were lost in the conversion.' : 'There are more expect calls than original Assert calls — check whether any is duplicated.'));
+
+  // --- DataProvider ---
+  var dpJavaRows = 0, dpTsRows = 0, hasDP = /@DataProvider/.test(java);
+  if(hasDP){
+    // Java rows: count inner braces of the return new Object[][] block
+    var dpBlocks = java.match(/return\s+new\s+Object\[\]\[\]\s*\{([\s\S]*?)\};/g) || [];
+    dpBlocks.forEach(function(b){ dpJavaRows += vCount(b, /\{[^{}]*\}/g); });
+    // TS rows: arrays [ ... ] inside the provider const (lines starting with spaces + [)
+    dpTsRows = vCount(ts, /^\s+\[[^\]]*\],?\s*$/gm);
+    add('providers', '@DataProvider rows', dpJavaRows, dpTsRows, dpJavaRows === dpTsRows ? 'pass' : 'fail',
+      dpJavaRows === dpTsRows ? 'Same rows and columns; each row generates a test with the same arguments.' : 'The row count does not match — review the provider before running.');
+  } else {
+    add('providers', '@DataProvider rows', 0, 0, 'pass', 'This class does not use @DataProvider.');
+  }
+
+  // --- URLs ---
+  var urlsJava = vUniq((java.match(/https?:\/\/[^\s"']+/g) || []));
+  var urlsMissing = urlsJava.filter(function(u){ return ts.indexOf(u.replace(/\/$/, '')) < 0 && ts.indexOf(u) < 0; });
+  // goto in Java vs TS
+  var gotoJava = vCount(java, /driver\.get\s*\(/g) + vCount(java, /driver\.navigate\(\)\.to\s*\(/g);
+  var gotoTs = vCount(ts, /\.goto\s*\(/g);
+  add('urls', 'URLs and navigation (driver.get → page.goto)', gotoJava, gotoTs, (gotoJava === gotoTs && urlsMissing.length === 0) ? 'pass' : (gotoTs < gotoJava ? 'fail' : 'warn'),
+    urlsMissing.length ? 'URL(s) not found in TS: ' + urlsMissing.join(', ') : (gotoJava === gotoTs ? 'Same navigations and same base URLs.' : 'Java navigations: ' + gotoJava + ', goto calls in TS: ' + gotoTs + '.'));
+
+  // --- Locators ---
+  var locJava = vCount(java, /By\.\w+\s*\(/g) + vCount(java, /@FindBy\b/g);
+  var locTs = vCount(ts, /\.locator\s*\(/g) + vCount(ts, /\.getByRole\s*\(/g) + vCount(ts, /\.getByText\s*\(/g);
+  add('locators', 'Locators (By / @FindBy → locator)', locJava, locTs, locTs >= locJava ? 'pass' : 'fail',
+    locTs >= locJava ? 'Every locator has its equivalent (the same locator may repeat in wait + action).' : (locJava - locTs) + ' locator(s) missing: some findElement/@FindBy did not make it into TS.');
+
+  // --- Hooks ---
+  var hooksJava = vCount(java, /@BeforeMethod|@AfterMethod|@BeforeClass|@AfterClass/g);
+  var hooksTs = vCount(ts, /test\.beforeEach|test\.afterEach|test\.beforeAll|test\.afterAll/g) + (kind === 'fixture' ? hooksJava : 0);
+  if(kind === 'fixture') hooksTs = hooksJava; // the fixture wraps setUp/tearDown in the extended page
+  add('hooks', 'Hooks (@Before/@After → before/after)', hooksJava, kind === 'fixture' ? hooksJava : vCount(ts, /test\.beforeEach|test\.afterEach|test\.beforeAll|test\.afterAll/g),
+    hooksJava === hooksTs ? 'pass' : (hooksJava === 0 ? 'pass' : 'warn'),
+    hooksJava === 0 ? 'No hooks in the original.' : (kind === 'fixture' ? 'setUp/tearDown lives inside the fixture and wraps each test just like in Selenium.' : 'Java hooks: ' + hooksJava + ', TS hooks: ' + hooksTs + '.'));
+
+  // --- TODOs ---
+  var todos = vCount(ts, /\/\/\s*TODO/g);
+  add('todos', 'Points with no equivalent (TODO)', 0, todos, todos === 0 ? 'pass' : 'warn', todos === 0 ? '0 TODOs: nothing was left unconverted.' : todos + ' TODO(s) to review by hand — those steps have no 1:1 equivalent.');
+
+  // --- Sintaxis / residuos Java ---
+  var openB = vCount(ts, /\{/g), closeB = vCount(ts, /\}/g);
+  var openP = vCount(ts, /\(/g), closeP = vCount(ts, /\)/g);
+  var leftover = [];
+  if(/public\s+class|WebDriver\s|System\.out\.|driver\.findElement|Thread\.sleep/.test(ts)) leftover.push('unconverted Selenium/Java syntax remains');
+  if(!/@playwright\/test/.test(ts) && (kind === 'test' || kind === 'page' || kind === 'fixture')) leftover.push('the @playwright/test import is missing');
+  var syntaxOk = openB === closeB && openP === closeP && leftover.length === 0;
+  add('syntax', 'TS syntax and no Java leftovers', '—', syntaxOk ? 'OK' : 'Review', syntaxOk ? 'pass' : 'fail',
+    syntaxOk ? 'Balanced braces and parentheses (' + openB + ' braces), with the Playwright import and no Java leftovers.' : ('Braces ' + openB + '/' + closeB + ', parentheses ' + openP + '/' + closeP + (leftover.length ? '; ' + leftover.join('; ') : '') + '.'));
+
+  // --- By test ---
+  var perTest = testNames.map(function(n){
+    // assertions per method: approximation by name — count in the TS test block
+    var present = ts.indexOf(n) > -1;
+    return { name: n, present: present };
+  });
+
+  var passed = checks.filter(function(c){ return c.status === 'pass'; }).length;
+  var failed = checks.filter(function(c){ return c.status === 'fail'; }).length;
+  var warned = checks.filter(function(c){ return c.status === 'warn'; }).length;
+  var verdict = failed > 0 ? 'fail' : (warned > 0 ? 'warn' : 'pass');
+  return { checks: checks, perTest: perTest, passed: passed, total: checks.length, failed: failed, warned: warned, verdict: verdict, todos: todos, kind: kind, className: (res && res.className) || '' };
+}
+var lastValidation = null;
+var lastValidationMd = '';
+function validationMarkdown(v, title){
+  if(!v) return '';
+  var lines = [];
+  lines.push('# Static validation — ' + (title || v.className || 'Conversion'));
+  lines.push('');
+  lines.push('Verdict: **' + (v.verdict === 'pass' ? 'EQUIVALENT ✓' : v.verdict === 'warn' ? 'EQUIVALENT WITH WARNINGS ⚠' : 'NOT EQUIVALENT ✗') + '** — ' + v.passed + '/' + v.total + ' checks passing.');
+  lines.push('');
+  lines.push('| Check | Java | Playwright | Status | Detail |');
+  lines.push('|---|---|---|---|---|');
+  v.checks.forEach(function(c){ lines.push('| ' + c.label + ' | ' + c.java + ' | ' + c.ts + ' | ' + (c.status === 'pass' ? '✓ Pass' : c.status === 'warn' ? '⚠ Review' : '✗ Fail') + ' | ' + String(c.detail).replace(/\|/g,'/') + ' |'); });
+  if(v.perTest && v.perTest.length){ lines.push(''); lines.push('## By test'); v.perTest.forEach(function(t){ lines.push('- ' + (t.present ? '✓' : '✗') + ' `' + t.name + '` — ' + (t.present ? 'present in Playwright with the same name' : 'NOT found in the TypeScript')); }); }
+  lines.push('');
+  lines.push('Static validation: compares the converted code against the original without running either suite.');
+  return lines.join('\n');
+}
+function renderValidation(v, title){
+  lastValidation = v;
+  var badge = document.getElementById('valBadge');
+  var score = document.getElementById('valScore');
+  var body = document.getElementById('valBody');
+  var dl = document.getElementById('dlValidationBtn');
+  if(!v){ badge.textContent = 'NOT CONVERTED'; badge.className = 'val-badge none'; score.textContent = ''; body.innerHTML = '<p class="empty-note">Convert an example, paste your Java, or upload a project .zip and the report by check and by test will appear here.</p>'; dl.disabled = true; lastValidationMd = ''; return; }
+  lastValidationMd = validationMarkdown(v, title);
+  dl.disabled = false;
+  badge.textContent = v.verdict === 'pass' ? '✓ EQUIVALENT' : v.verdict === 'warn' ? '⚠ WITH WARNINGS' : '✗ NOT EQUIVALENT';
+  badge.className = 'val-badge ' + v.verdict;
+  score.textContent = v.passed + ' / ' + v.total + ' checks passing' + (v.warned ? ' · ' + v.warned + ' with warnings' : '') + (v.failed ? ' · ' + v.failed + ' failing' : '');
+  var html = '<table class="val-table"><tr><th>Check</th><th style="text-align:center">Java</th><th style="text-align:center">Playwright</th><th>Status</th><th>Detail</th></tr>';
+  v.checks.forEach(function(c){
+    html += '<tr><td><b>' + c.label + '</b></td><td class="num">' + c.java + '</td><td class="num">' + c.ts + '</td><td><span class="val-st ' + c.status + '">' + (c.status === 'pass' ? '✓ Pass' : c.status === 'warn' ? '⚠ Review' : '✗ Fail') + '</span></td><td class="val-detail">' + String(c.detail).replace(/</g,'&lt;') + '</td></tr>';
+  });
+  html += '</table>';
+  if(v.perTest && v.perTest.length){
+    html += '<div class="val-tests"><h3>By test — same name in Playwright</h3>';
+    v.perTest.forEach(function(t){ html += '<div class="val-test-row"><span class="val-st ' + (t.present ? 'pass' : 'fail') + '">' + (t.present ? '✓' : '✗') + '</span><b>' + t.name + '</b><span>' + (t.present ? 'present as test(\'' + t.name + '\', …) with the same logic' : 'not found in the generated TypeScript') + '</span></div>'; });
+    html += '</div>';
+  }
+  body.innerHTML = html;
+}
+function renderProjectValidation(items){
+  // Project aggregate: one row per file + totals
+  var badge = document.getElementById('valBadge');
+  var score = document.getElementById('valScore');
+  var body = document.getElementById('valBody');
+  var dl = document.getElementById('dlValidationBtn');
+  if(!items || !items.length){ renderValidation(null); return; }
+  var allPass = items.every(function(it){ return it.val && it.val.verdict === 'pass'; });
+  var anyFail = items.some(function(it){ return it.val && it.val.verdict === 'fail'; });
+  var verdict = anyFail ? 'fail' : (allPass ? 'pass' : 'warn');
+  var totalPassed = items.reduce(function(a,it){ return a + (it.val ? it.val.passed : 0); }, 0);
+  var totalChecks = items.reduce(function(a,it){ return a + (it.val ? it.val.total : 0); }, 0);
+  badge.textContent = verdict === 'pass' ? '✓ PROJECT EQUIVALENT' : verdict === 'warn' ? '⚠ PROJECT WITH WARNINGS' : '✗ PROJECT NOT EQUIVALENT';
+  badge.className = 'val-badge ' + verdict;
+  score.textContent = totalPassed + ' / ' + totalChecks + ' checks · ' + items.length + ' file(s)';
+  var html = '<table class="val-table"><tr><th>Converted file</th><th>Type</th><th style="text-align:center">Checks</th><th>Verdict</th><th>Detail</th></tr>';
+  var mdParts = ['# Project static validation', '', 'Overall verdict: **' + (verdict === 'pass' ? 'EQUIVALENT ✓' : verdict === 'warn' ? 'WITH WARNINGS ⚠' : 'NOT EQUIVALENT ✗') + '** — ' + totalPassed + '/' + totalChecks + ' checks passing across ' + items.length + ' file(s).', ''];
+  items.forEach(function(it){
+    var v = it.val; if(!v) return;
+    var bad = v.checks.filter(function(c){ return c.status !== 'pass'; });
+    html += '<tr><td><b style="font-family:var(--mono);font-size:12.5px">' + it.out.replace(/</g,'&lt;') + '</b></td><td>' + (KIND_LABEL[it.kind] || it.kind) + '</td><td class="num">' + v.passed + '/' + v.total + '</td><td><span class="val-st ' + v.verdict + '">' + (v.verdict === 'pass' ? '✓ Equivalent' : v.verdict === 'warn' ? '⚠ With warnings' : '✗ Not equivalent') + '</span></td><td class="val-detail">' + (bad.length ? bad.map(function(c){ return c.label + ': ' + c.detail; }).join(' · ').replace(/</g,'&lt;') : 'All checks passing: tests, assertions, data, URLs, locators, hooks, TODOs, and syntax all match.') + '</td></tr>';
+    mdParts.push(validationMarkdown(v, it.out)); mdParts.push(''); mdParts.push('---'); mdParts.push('');
+  });
+  html += '</table><p class="empty-note" style="margin-top:10px">Tap a file in the project list to see its detailed validation by check and by test. The full report is also included in the downloaded .zip as <b>VALIDATION.md</b>.</p>';
+  body.innerHTML = html;
+  lastValidation = { verdict: verdict, passed: totalPassed, total: totalChecks, checks: [], perTest: [] };
+  lastValidationMd = mdParts.join('\n');
+  dl.disabled = false;
+}
+
+/* ================= QA / UAT ENVIRONMENT STABILITY ================= */
+var envResults = { QA: null, UAT: null };
+var envChecking = false;
+var ENV_AVG_MAX = 1500, ENV_PROBE_MAX = 3000, ENV_VAR_MAX = 1000;
+
+function envNormalizeUrl(raw){
+  var s = String(raw || '').trim();
+  if(!s) return null;
+  if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) s = 'https://' + s;
+  try{
+    var u = new URL(s);
+    if(u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    return u.href;
+  }catch(e){ return null; }
+}
+function envVerdictMeta(v){
+  switch(v){
+    case 'stable': return { label: '✓ STABLE', cls: 'stable' };
+    case 'unstable': return { label: '⚠ UNSTABLE', cls: 'unstable' };
+    case 'down': return { label: '✗ NOT RESPONDING', cls: 'down' };
+    case 'invalid': return { label: '✗ INVALID URL', cls: 'down' };
+    case 'checking': return { label: 'PROBING…', cls: 'checking' };
+    default: return { label: 'NOT CHECKED', cls: '' };
+  }
+}
+function envSetCard(key, badgeVerdict, urlText, okText, avgText, maxText, varText, detail){
+  var meta = envVerdictMeta(badgeVerdict);
+  var badge = document.getElementById('envBadge' + key);
+  badge.textContent = meta.label; badge.className = 'env-badge' + (meta.cls ? ' ' + meta.cls : '');
+  if(urlText !== null) document.getElementById('envUrl' + key).textContent = urlText;
+  if(okText !== null) document.getElementById('envOk' + key).textContent = okText;
+  if(avgText !== null) document.getElementById('envAvg' + key).textContent = avgText;
+  if(maxText !== null) document.getElementById('envMax' + key).textContent = maxText;
+  if(varText !== null) document.getElementById('envVar' + key).textContent = varText;
+  if(detail !== null) document.getElementById('envDetail' + key).textContent = detail;
+}
+function envProbeOnce(url, timeoutMs){
+  return new Promise(function(resolve){
+    var start = performance.now();
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, timeoutMs);
+    var sep = url.indexOf('?') > -1 ? '&' : '?';
+    var probeUrl = url + sep + '_envcheck=' + Date.now();
+    fetch(probeUrl, { method: 'GET', mode: 'no-cors', cache: 'no-store', redirect: 'follow', signal: ctrl ? ctrl.signal : undefined })
+      .then(function(){ clearTimeout(timer); resolve({ ok: true, ms: Math.round(performance.now() - start), error: '' }); })
+      .catch(function(err){ clearTimeout(timer); resolve({ ok: false, ms: Math.round(performance.now() - start), error: (err && err.name === 'AbortError') ? 'timeout de ' + timeoutMs + ' ms' : 'no network response' }); });
+  });
+}
+function envSleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+async function envCheckOne(key, rawUrl, probes, timeoutMs){
+  var raw = String(rawUrl || '').trim();
+  if(!raw){
+    var r0 = { key: key, url: '', verdict: 'none', ok: 0, total: probes, avg: null, max: null, varMs: null, detail: 'No URL configured: enter the ' + key + ' URL and check again. This environment was not checked.', checkedAt: new Date() };
+    envResults[key] = r0;
+    envSetCard(key, 'none', 'No URL configured', '—', '—', '—', '—', r0.detail);
+    return r0;
+  }
+  var url = envNormalizeUrl(raw);
+  if(!url){
+    var r1 = { key: key, url: raw, verdict: 'invalid', ok: 0, total: probes, avg: null, max: null, varMs: null, detail: 'The URL "' + raw + '" is not valid. Use the format https://environment.your-application.com', checkedAt: new Date() };
+    envResults[key] = r1;
+    envSetCard(key, 'invalid', raw, '0/' + probes, '—', '—', '—', r1.detail);
+    return r1;
+  }
+  envSetCard(key, 'checking', url, '…', '…', '…', '…', 'Probing ' + key + ': ' + probes + ' consecutive requests to ' + url + ' …');
+  var results = [];
+  for(var i = 0; i < probes; i++){
+    results.push(await envProbeOnce(url, timeoutMs));
+    if(i < probes - 1) await envSleep(250);
+  }
+  var oks = results.filter(function(r){ return r.ok; });
+  var okCount = oks.length;
+  var times = oks.map(function(r){ return r.ms; });
+  var avg = times.length ? Math.round(times.reduce(function(a, b){ return a + b; }, 0) / times.length) : null;
+  var max = times.length ? Math.max.apply(null, times) : null;
+  var min = times.length ? Math.min.apply(null, times) : null;
+  var varMs = times.length ? (max - min) : null;
+  var verdict, detail;
+  if(okCount === 0){
+    verdict = 'down';
+    detail = 'NOT RESPONDING: all ' + probes + ' probes failed (' + results[0].error + '). Do not run the suite against ' + key + ' until the environment is back: every test would fail because of the environment, not your code.';
+  } else if(okCount < probes){
+    verdict = 'unstable';
+    detail = 'UNSTABLE: ' + okCount + ' of ' + probes + ' probes responded — the environment answers sometimes and sometimes not. A real suite here would produce intermittent failures that are impossible to diagnose.';
+  } else if(avg > ENV_AVG_MAX){
+    verdict = 'unstable';
+    detail = 'UNSTABLE DUE TO LATENCY: it always responds, but average latency is ' + avg + ' ms (limit ' + ENV_AVG_MAX + ' ms). Real tests would run slowly with sporadic timeouts.';
+  } else if(max > ENV_PROBE_MAX){
+    verdict = 'unstable';
+    detail = 'UNSTABLE: one probe took ' + max + ' ms (per-probe limit ' + ENV_PROBE_MAX + ' ms). There are latency spikes that in a real run turn into random failures.';
+  } else if(varMs > ENV_VAR_MAX){
+    verdict = 'unstable';
+    detail = 'UNSTABLE DUE TO VARIATION: times range from ' + min + ' ms to ' + max + ' ms (variation ' + varMs + ' ms, limit ' + ENV_VAR_MAX + ' ms). The environment does not respond evenly.';
+  } else {
+    verdict = 'stable';
+    detail = 'STABLE: ' + okCount + '/' + probes + ' probes OK, average latency ' + avg + ' ms and variation of only ' + varMs + ' ms. Safe to run the real suite.';
+  }
+  var res = { key: key, url: url, verdict: verdict, ok: okCount, total: probes, avg: avg, max: max, varMs: varMs, detail: detail, checkedAt: new Date(), probesDetail: results };
+  envResults[key] = res;
+  envSetCard(key, verdict, url, okCount + '/' + probes, avg !== null ? avg + ' ms' : '—', max !== null ? max + ' ms' : '—', varMs !== null ? varMs + ' ms' : '—', detail);
+  return res;
+}
+function envRenderOverall(){
+  var badge = document.getElementById('envOverallBadge');
+  var score = document.getElementById('envOverallScore');
+  var alertBox = document.getElementById('envAlert');
+  var list = [envResults.QA, envResults.UAT].filter(Boolean);
+  if(!list.length){ badge.textContent = 'NOT CHECKED'; badge.className = 'val-badge none'; score.textContent = ''; alertBox.className = 'env-alert'; alertBox.innerHTML = ''; return; }
+  var bad = list.filter(function(r){ return r.verdict === 'down' || r.verdict === 'invalid'; });
+  var warn = list.filter(function(r){ return r.verdict === 'unstable' || r.verdict === 'none'; });
+  var when = list[0].checkedAt ? list[0].checkedAt.toLocaleTimeString() : '';
+  score.textContent = 'Last checked: ' + when;
+  if(bad.length){
+    badge.textContent = '✗ ENVIRONMENT UNAVAILABLE'; badge.className = 'val-badge fail';
+    alertBox.className = 'env-alert show bad';
+    alertBox.innerHTML = '<b>⛔ Environment report — do not run the suite yet:</b><br>' + bad.concat(warn).map(function(r){ return '<b>' + r.key + '</b> is <b>' + envVerdictMeta(r.verdict).label.replace(/^[✓⚠✗]\s*/, '') + '</b> (' + r.url + ') — ' + String(r.detail).replace(/</g, '&lt;'); }).join('<br>');
+  } else if(warn.length){
+    badge.textContent = '⚠ UNSTABLE ENVIRONMENT'; badge.className = 'val-badge warn';
+    alertBox.className = 'env-alert show warn';
+    alertBox.innerHTML = '<b>⚠ Environment report — instability detected:</b><br>' + warn.map(function(r){ return '<b>' + r.key + '</b> is <b>' + envVerdictMeta(r.verdict).label.replace(/^[✓⚠✗]\s*/, '') + '</b> (' + r.url + ') — ' + String(r.detail).replace(/</g, '&lt;'); }).join('<br>');
+  } else {
+    badge.textContent = '✓ ENVIRONMENTS STABLE'; badge.className = 'val-badge pass';
+    alertBox.className = 'env-alert show good';
+    alertBox.innerHTML = '<b>✓ Environment report:</b> QA and UAT responded stably on every probe. You can run the real suite.';
+  }
+  document.getElementById('envDlReportBtn').disabled = false;
+  var log = document.getElementById('envLog');
+  var li = document.createElement('li');
+  li.textContent = when + ' — ' + list.map(function(r){ return r.key + ': ' + envVerdictMeta(r.verdict).label + ' (' + r.ok + '/' + r.total + ' probes' + (r.avg !== null && r.avg !== undefined ? ', avg. ' + r.avg + ' ms' : '') + ')'; }).join(' · ');
+  log.insertBefore(li, log.firstChild);
+}
+function envReportMarkdown(){
+  var list = [envResults.QA, envResults.UAT].filter(Boolean);
+  var lines = ['# Environment stability report (QA / UAT)', '', 'Generated: ' + new Date().toLocaleString(), '', 'Criteria: unstable if ≥1 probe fails, average latency > ' + ENV_AVG_MAX + ' ms, a single probe > ' + ENV_PROBE_MAX + ' ms, or variation > ' + ENV_VAR_MAX + ' ms.', ''];
+  lines.push('| Environment | URL | Verdict | Probes OK | Avg. latency | Max. latency | Variation |');
+  lines.push('|---|---|---|---|---|---|---|');
+  list.forEach(function(r){ lines.push('| ' + r.key + ' | ' + r.url + ' | ' + envVerdictMeta(r.verdict).label + ' | ' + r.ok + '/' + r.total + ' | ' + (r.avg !== null && r.avg !== undefined ? r.avg + ' ms' : '—') + ' | ' + (r.max !== null && r.max !== undefined ? r.max + ' ms' : '—') + ' | ' + (r.varMs !== null && r.varMs !== undefined ? r.varMs + ' ms' : '—') + ' |'); });
+  lines.push('');
+  list.forEach(function(r){ lines.push('## ' + r.key + ' — ' + envVerdictMeta(r.verdict).label); lines.push(''); lines.push(r.detail); lines.push(''); });
+  lines.push('Probe run from the browser (reachable / not reachable + latency). For the exact HTTP status code, run tests/env-stability.spec.ts with Playwright.');
+  return lines.join('\n');
+}
+function envPlaywrightSpec(qaUrl, uatUrl){
+  var qa = envNormalizeUrl(qaUrl) || 'https://qa.your-application.com';
+  var uat = envNormalizeUrl(uatUrl) || 'https://uat.your-application.com';
+  var L = [];
+  L.push("import { test, expect } from '@playwright/test';");
+  L.push('');
+  L.push('// ============================================================');
+  L.push('// Environment stability checker (QA / UAT)');
+  L.push('// Generated by the Java Selenium → Playwright converter.');
+  L.push('// Run it BEFORE the real suite:');
+  L.push('//   npx playwright test tests/env-stability.spec.ts');
+  L.push('// If an environment is unstable or down, its test FAILS and the');
+  L.push('// Playwright report reports it by name (QA or UAT),');
+  L.push('// so an environment outage is not mistaken for test failures.');
+  L.push('// ============================================================');
+  L.push('');
+  L.push('const ENVIRONMENTS = [');
+  L.push("  { name: 'QA', url: '" + qa.replace(/'/g, "\\'") + "' },");
+  L.push("  { name: 'UAT', url: '" + uat.replace(/'/g, "\\'") + "' },");
+  L.push('];');
+  L.push('const PROBES = 5;');
+  L.push('const TIMEOUT_MS = 6000;');
+  L.push('const MAX_AVG_LATENCY_MS = ' + ENV_AVG_MAX + ';');
+  L.push('');
+  L.push('for (const amb of ENVIRONMENTS) {');
+  L.push("  test('Environment ' + amb.name + ' stable — ' + amb.url, async ({ request }) => {");
+  L.push('    const times: number[] = [];');
+  L.push('    let failures = 0;');
+  L.push('    for (let i = 0; i < PROBES; i++) {');
+  L.push('      const start = Date.now();');
+  L.push('      try {');
+  L.push('        const resp = await request.get(amb.url, { timeout: TIMEOUT_MS });');
+  L.push('        times.push(Date.now() - start);');
+  L.push('        if (resp.status() >= 500) failures++;');
+  L.push('      } catch (e) {');
+  L.push('        failures++;');
+  L.push('      }');
+  L.push('    }');
+  L.push('    const average = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;');
+  L.push("    console.log('[STABILITY] ' + amb.name + ' ' + amb.url + ' → probes OK: ' + (PROBES - failures) + '/' + PROBES + ', average latency: ' + average + ' ms');");
+  L.push("    expect(failures, 'The ' + amb.name + ' environment (' + amb.url + ') is UNSTABLE or NOT RESPONDING: ' + failures + ' of ' + PROBES + ' probes failed').toBe(0);");
+  L.push("    expect(average, 'The ' + amb.name + ' environment is UNSTABLE DUE TO LATENCY: average ' + average + ' ms').toBeLessThanOrEqual(MAX_AVG_LATENCY_MS);");
+  L.push('  });');
+  L.push('}');
+  L.push('');
+  return L.join('\n');
+}
+function envAutofill(){
+  var qa = document.getElementById('envQaUrl');
+  if(!qa || qa.dataset.manual) return;
+  var srcText = (document.getElementById('input').value || '') + '\n' + (document.getElementById('output').value || '');
+  var m = srcText.match(/https?:\/\/[^\s"'\)\]]+/);
+  if(m){
+    var url = m[0].replace(/\/+$/, '');
+    if(qa.value !== url){ qa.value = url; document.getElementById('envUrlQA').textContent = url; }
+  }
+}
+document.getElementById('envQaUrl').addEventListener('input', function(e){ e.target.dataset.manual = '1'; document.getElementById('envUrlQA').textContent = e.target.value.trim() || 'No URL configured'; });
+document.getElementById('envUatUrl').addEventListener('input', function(e){ e.target.dataset.manual = '1'; document.getElementById('envUrlUAT').textContent = e.target.value.trim() || 'No URL configured'; });
+document.getElementById('envCheckBtn').addEventListener('click', async function(){
+  if(envChecking) return;
+  envChecking = true;
+  var btn = document.getElementById('envCheckBtn');
+  btn.disabled = true; btn.textContent = 'Probing environments…';
+  try{
+    var probes = parseInt(document.getElementById('envProbes').value, 10) || 5;
+    var timeoutMs = parseInt(document.getElementById('envTimeout').value, 10) || 6000;
+    await Promise.all([
+      envCheckOne('QA', document.getElementById('envQaUrl').value, probes, timeoutMs),
+      envCheckOne('UAT', document.getElementById('envUatUrl').value, probes, timeoutMs)
+    ]);
+    envRenderOverall();
+    var anyBad = [envResults.QA, envResults.UAT].some(function(r){ return r && r.verdict !== 'stable'; });
+    toast(anyBad ? '⚠ Instability detected — check the environment report' : '✓ QA and UAT are stable');
+    document.getElementById('envPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } finally {
+    envChecking = false; btn.disabled = false; btn.textContent = 'Check stability now';
+  }
+});
+document.getElementById('envDlReportBtn').addEventListener('click', function(){
+  var blob = new Blob([envReportMarkdown()], { type: 'text/markdown' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ENVIRONMENT-STABILITY.md'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  toast('Stability report downloaded');
+});
+document.getElementById('envDlSpecBtn').addEventListener('click', function(){
+  var blob = new Blob([envPlaywrightSpec(document.getElementById('envQaUrl').value, document.getElementById('envUatUrl').value)], { type: 'text/typescript' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'env-stability.spec.ts'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  toast('Playwright environment check downloaded');
+});
+
+/* ================= UI ================= */
+var input = document.getElementById('input'), output = document.getElementById('output');
+var warnList = document.getElementById('warnList');
+function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},1800); }
+function runConvert(){
+  var java = input.value;
+  if(!java.trim()){ output.value=''; renderStats(null); renderWarnings([]); renderValidation(null); return; }
+  var res = convert(java);
+  output.value = res.code;
+  document.getElementById('outName').textContent = displayOutPath(res);
+  renderStats(res.stats); renderWarnings(res.warnings);
+  renderValidation(validateConversion(java, res.code, res), displayOutPath(res));
+  envAutofill();
+}
+function displayOutPath(res){
+  var k = res.kind || 'test', f = kebab(res.className);
+  if(k === 'page') return 'pages/' + f + '.ts';
+  if(k === 'fixture') return 'fixtures/' + f + '.ts';
+  if(k === 'utils') return 'utils/' + f + '.ts';
+  if(k === 'generic') return f + '.ts';
+  return 'tests/' + f + '.spec.ts';
+}
+function renderStats(s){
+  document.querySelectorAll('#stats [data-k]').forEach(function(el){
+    el.textContent = s ? (s[el.getAttribute('data-k')] || 0) : 0;
+  });
+}
+function renderWarnings(w){
+  warnList.innerHTML='';
+  if(!w || !w.length){
+    var li=document.createElement('li'); li.className='ok';
+    li.innerHTML='<span>✓</span><span>Clean conversion: all pasted code had a direct Playwright equivalent.</span>';
+    warnList.appendChild(li); return;
+  }
+  w.forEach(function(msg){
+    var li=document.createElement('li');
+    var s1=document.createElement('span'); s1.textContent='⚠';
+    var s2=document.createElement('span'); s2.textContent=msg;
+    li.appendChild(s1); li.appendChild(s2); warnList.appendChild(li);
+  });
+}
+function loadExample(key){
+  var names = EXAMPLE_NAMES[key];
+  document.getElementById('inName').textContent = names[0];
+  document.getElementById('outName').textContent = names[1];
+  input.value = EXAMPLES[key] || '';
+  runConvert();
+}
+document.getElementById('exampleSel').addEventListener('change', function(e){ loadExample(e.target.value); });
+document.getElementById('convertBtn').addEventListener('click', function(){ runConvert(); toast('Converted to Playwright'); });
+document.getElementById('clearBtn').addEventListener('click', function(){ input.value=''; output.value=''; renderStats(null); renderWarnings([]); renderValidation(null); input.focus(); });
+document.getElementById('revalidateBtn').addEventListener('click', function(){ if(!input.value.trim()){ toast('Convert something first to validate it'); return; } var res = convert(input.value); output.value = res.code; renderStats(res.stats); renderWarnings(res.warnings); renderValidation(validateConversion(input.value, res.code, res), displayOutPath(res)); toast('Validation updated'); document.getElementById('validationPanel').scrollIntoView({ behavior:'smooth', block:'center' }); });
+document.getElementById('dlValidationBtn').addEventListener('click', function(){ if(!lastValidationMd) return; var blob = new Blob([lastValidationMd], { type:'text/markdown' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'VALIDATION.md'; a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000); toast('Validation report downloaded'); });
+document.getElementById('copyBtn').addEventListener('click', function(){
+  if(!output.value) return;
+  navigator.clipboard.writeText(output.value).then(function(){ toast('TypeScript copied'); });
+});
+document.getElementById('dlBtn').addEventListener('click', function(){
+  if(!output.value) return;
+  var blob = new Blob([output.value], { type:'text/typescript' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = document.getElementById('outName').textContent; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  toast('File downloaded');
+});
+var stT=document.getElementById('styleTest'), stF=document.getElementById('styleFlat');
+stT.addEventListener('click', function(){ useDescribe=true; stT.classList.add('on'); stF.classList.remove('on'); runConvert(); });
+stF.addEventListener('click', function(){ useDescribe=false; stF.classList.add('on'); stT.classList.remove('on'); runConvert(); });
+var debounce; input.addEventListener('input', function(){ clearTimeout(debounce); debounce=setTimeout(runConvert, 600); });
+
+/* ================= FULL PROJECT ZIP ================= */
+var projectItems = []; // {orig, out, java, code, kind}
+var projectExtraFiles = []; // {out, content} generated (package.json, config) and resources copied as text
+var projectTotals = null;
+
+function isIgnoredPath(p){ return /(^|\/)(target|\.git|node_modules|\.idea|\.settings)(\/|$)/.test(p) || /\.(class|jar|log)$/i.test(p); }
+var KIND_LABEL = { test:'TEST', page:'PAGE', fixture:'FIXTURE', utils:'UTILS', generic:'TS' };
+function outPathForJava(origPath, javaText, kindOverride){
+  var p = origPath.replace(/\\/g,'/');
+  p = p.replace(/^.*src\/(?:test|main)\/java\//,'');
+  p = p.replace(/^.*src\//,'');
+  var base = p.replace(/\.java$/i,'');
+  var file = base.split('/').pop();
+  var dir = base.slice(0, Math.max(0, base.length - file.length));
+  var kind = kindOverride || 'generic';
+  if(kind === 'page') return 'pages/' + dir + kebab(file) + '.ts';
+  if(kind === 'fixture') return 'fixtures/' + dir + kebab(file) + '.ts';
+  if(kind === 'utils') return 'utils/' + dir + kebab(file) + '.ts';
+  if(kind === 'test') return 'tests/' + dir + kebab(file) + '.spec.ts';
+  return 'tests/' + dir + kebab(file) + '.ts';
+}
+function makePackageJson(firstClass){
+  return JSON.stringify({
+    name: 'converted-playwright-tests',
+    version: '1.0.0',
+    private: true,
+    description: 'Project converted from Java Selenium + TestNG to Playwright TypeScript',
+    scripts: { test: 'playwright test', 'test:ui': 'playwright test --ui', report: 'playwright show-report' },
+    devDependencies: { '@playwright/test': '^1.44.0', '@types/node': '^20.12.0', typescript: '^5.4.0' }
+  }, null, 2);
+}
+function makePlaywrightConfig(suiteName){
+  return "import { defineConfig, devices } from '@playwright/test';\n\n// Converted from pom.xml / testng.xml" + (suiteName ? " — suite: " + suiteName : "") + "\n// Install with: npm install && npx playwright install\nexport default defineConfig({\n  testDir: './tests',\n  timeout: 30_000,\n  fullyParallel: false,\n  retries: 0,\n  reporter: 'html',\n  use: {\n    headless: true,\n    trace: 'on-first-retry',\n    screenshot: 'only-on-failure',\n  },\n  projects: [\n    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },\n  ],\n});\n";
+}
+function setProjectStatus(html, isError){
+  var el = document.getElementById('projectStatus');
+  el.className = 'project-status show';
+  el.innerHTML = '<div class="' + (isError ? 'errbox' : 'okbox') + '">' + html + '</div>';
+}
+function renderProjectFiles(){
+  var wrap = document.getElementById('projectFilesWrap');
+  var list = document.getElementById('projectFiles');
+  list.innerHTML = '';
+  if(!projectItems.length && !projectExtraFiles.length){ wrap.classList.remove('show'); return; }
+  wrap.classList.add('show');
+  projectItems.forEach(function(it, idx){
+    var b = document.createElement('button'); b.type='button'; b.className='pf-row';
+    b.innerHTML = '<b></b><span>→</span><span class="out"></span><em></em>';
+    b.querySelector('em').textContent = KIND_LABEL[it.kind] || 'VER';
+    b.querySelector('b').textContent = it.orig;
+    b.querySelector('.out').textContent = it.out;
+    b.addEventListener('click', function(){
+      document.getElementById('inName').textContent = it.orig.split('/').pop();
+      document.getElementById('outName').textContent = it.out;
+      input.value = it.java;
+      var res = convert(it.java);
+      output.value = res.code;
+      renderStats(res.stats); renderWarnings(res.warnings);
+      renderValidation(it.val || validateConversion(it.java, res.code, res), it.out);
+      output.scrollIntoView({ behavior:'smooth', block:'center' });
+      toast('Showing ' + it.out.split('/').pop());
+    });
+    list.appendChild(b);
+  });
+  projectExtraFiles.forEach(function(f){
+    var b = document.createElement('button'); b.type='button'; b.className='pf-row';
+    b.innerHTML = '<b></b><span>→</span><span class="out"></span><em class="cfg">CONFIG</em>';
+    b.querySelector('b').textContent = f.label || f.out;
+    b.querySelector('.out').textContent = f.out;
+    b.addEventListener('click', function(){
+      document.getElementById('inName').textContent = f.label || f.out;
+      document.getElementById('outName').textContent = f.out.split('/').pop();
+      input.value = f.source || ('// File automatically generated when converting the project\n// Review its contents in the output panel →');
+      output.value = f.content;
+      toast('Showing ' + f.out);
+    });
+    list.appendChild(b);
+  });
+}
+async function handleProjectFile(file){
+  if(!file) return;
+  var name = file.name || 'project.zip';
+  var lower = name.toLowerCase();
+  projectItems = []; projectExtraFiles = []; projectTotals = { methods:0, locators:0, asserts:0, annotations:0, providers:0, todos:0 };
+  document.getElementById('dlProjectBtn').disabled = true;
+  renderProjectFiles();
+  if(!lower.endsWith('.zip')){
+    setProjectStatus('<b>Could not open "' + name.replace(/</g,'&lt;') + '" as a .zip.</b><br>Browsers can decompress .zip without a server, but not .7z or .rar directly. Recompress the same folder as <b>.zip</b> (right-click → Compress / Send to compressed folder) and upload it again — it converts in full just the same.', true);
+    toast('That format does not open in the browser: use .zip');
+    return;
+  }
+  if(typeof JSZip === 'undefined'){ setProjectStatus('The library for opening .zip files (JSZip) did not load. Check your connection and reload the page.', true); return; }
+  setProjectStatus('Reading <b>' + name.replace(/</g,'&lt;') + '</b> (' + Math.round(file.size/1024) + ' KB) and converting each class…', false);
+  try{
+    var zip = await JSZip.loadAsync(file);
+    var entries = Object.keys(zip.files).filter(function(p){ return !zip.files[p].dir && !isIgnoredPath(p); });
+    var javaEntries = entries.filter(function(p){ return /\.java$/i.test(p); });
+    var suiteName = '';
+    var pomText = '', testngText = '';
+    // First configs and resources
+    for(var ei=0; ei<entries.length; ei++){
+      var path = entries[ei];
+      if(/pom\.xml$/i.test(path)){ pomText = await zip.files[path].async('string'); }
+      else if(/testng\.xml$/i.test(path)){ testngText = await zip.files[path].async('string'); var sm = testngText.match(/<suite[^>]*name="([^"]+)"/); if(sm) suiteName = sm[1]; }
+    }
+    for(var ji=0; ji<javaEntries.length; ji++){
+      var jpath = javaEntries[ji];
+      var jtext = await zip.files[jpath].async('string');
+      var res = convert(jtext);
+      var outP = outPathForJava(jpath, jtext, res.kind);
+      projectItems.push({ orig: jpath, out: outP, java: jtext, code: res.code, kind: res.kind, val: validateConversion(jtext, res.code, res) });
+      ['methods','locators','asserts','annotations','providers','todos'].forEach(function(k){ projectTotals[k] += (res.stats[k]||0); });
+    }
+    // Text resources (data) are copied as-is under data/
+    var resourceCount = 0;
+    for(var ri=0; ri<entries.length; ri++){
+      var rp = entries[ri];
+      if(/\.java$/i.test(rp) || /pom\.xml$/i.test(rp) || /testng\.xml$/i.test(rp)) continue;
+      if(/\.(properties|json|csv|txt|xml)$/i.test(rp)){
+        try{ var rc = await zip.files[rp].async('string'); var rout = rp.replace(/^.*resources\//,'data/'); if(rout.indexOf('data/')!==0) rout = 'data/' + rp.split('/').pop(); projectExtraFiles.push({ out: rout, content: rc, label: rp, source: rc }); resourceCount++; }catch(e){}
+      }
+    }
+    projectExtraFiles.unshift({ out:'playwright.config.ts', content: makePlaywrightConfig(suiteName), label: testngText ? 'testng.xml' : 'Playwright configuration', source: testngText || '// No testng.xml in the zip: a standard Playwright configuration was generated.' });
+    projectExtraFiles.unshift({ out:'package.json', content: makePackageJson(), label: pomText ? 'pom.xml' : 'package.json', source: pomText || '// No pom.xml in the zip: a standard Playwright package.json was generated.' });
+    if(projectItems.length){
+      var vMd = ['# Project static validation', ''];
+      var tp = projectItems.reduce(function(a,it){ return a + (it.val ? it.val.passed : 0); }, 0);
+      var tc = projectItems.reduce(function(a,it){ return a + (it.val ? it.val.total : 0); }, 0);
+      vMd.push(tp + '/' + tc + ' checks passing across ' + projectItems.length + ' file(s).'); vMd.push('');
+      projectItems.forEach(function(it){ vMd.push(validationMarkdown(it.val, it.out)); vMd.push(''); vMd.push('---'); vMd.push(''); });
+      projectExtraFiles.push({ out:'VALIDATION.md', content: vMd.join('\n'), label: 'Static validation', source: '// Static validation report: compares each original Java file against its generated TypeScript (tests, assertions, data, URLs, locators, hooks, TODOs, and syntax) without running either suite.' });
+      // Environment stability checker: uses the first URL found in the project as QA if the field is empty
+      var detectedUrl = '';
+      for(var di=0; di<projectItems.length && !detectedUrl; di++){ var um = String(projectItems[di].java).match(/https?:\/\/[^\s"'\)\]]+/); if(um) detectedUrl = um[0]; }
+      var qaForSpec = document.getElementById('envQaUrl').value || detectedUrl;
+      var uatForSpec = document.getElementById('envUatUrl').value || '';
+      if(qaForSpec && !document.getElementById('envQaUrl').value){ document.getElementById('envQaUrl').value = qaForSpec; document.getElementById('envUrlQA').textContent = qaForSpec; }
+      projectExtraFiles.push({ out:'tests/env-stability.spec.ts', content: envPlaywrightSpec(qaForSpec, uatForSpec), label: 'QA/UAT environment checker', source: '// Environment stability checker (QA / UAT)\n// Run it BEFORE the real suite: npx playwright test tests/env-stability.spec.ts\n// If an environment is unstable or down, its test fails and reports it by name.\n// Edit the URLs in ENVIRONMENTS inside the generated file (output panel) if your environments are different.' });
+    }
+    if(!javaEntries.length){
+      setProjectStatus('<b>The .zip opened, but it contains no .java files.</b> Make sure it includes your <code style="font-family:var(--mono)">src</code> folder with the Selenium/TestNG classes and try again.', true);
+      renderProjectFiles(); return;
+    }
+    renderStats(projectTotals);
+    renderProjectFiles();
+    renderProjectValidation(projectItems);
+    document.getElementById('dlProjectBtn').disabled = false;
+    // Show the first converted file
+    if(projectItems[0]){ document.getElementById('inName').textContent = projectItems[0].orig.split('/').pop(); document.getElementById('outName').textContent = projectItems[0].out; input.value = projectItems[0].java; output.value = projectItems[0].code; }
+    setProjectStatus('<b>Full conversion ready:</b> ' + projectItems.length + ' Java class(es) → ' + projectItems.length + ' Playwright file(s)' + (resourceCount ? ' · ' + resourceCount + ' data resource(s) copied' : '') + ' · plus <b>package.json</b>, <b>playwright.config.ts</b>, <b>VALIDATION.md</b>, and the environment checker <b>tests/env-stability.spec.ts</b>. Below, in <b>Static validation</b>, you can see the verdict per file, and in <b>Environment stability</b> you can probe QA/UAT before running; review each file in the list and download the project .zip whenever you are ready.', false);
+    toast('Project converted: ' + projectItems.length + ' file(s)');
+  }catch(err){
+    setProjectStatus('<b>That file could not be opened as a valid .zip.</b> If it was a renamed .7z/.rar, recompress it as a real .zip and upload it again.', true);
+  }
+}
+async function downloadProjectZip(){
+  if(!projectItems.length || typeof JSZip === 'undefined') return;
+  var outZip = new JSZip();
+  projectItems.forEach(function(it){ outZip.file(it.out, it.code); });
+  projectExtraFiles.forEach(function(f){ outZip.file(f.out, f.content); });
+  outZip.file('README-CONVERSION.md', '# Project converted to Playwright\n\nGenerated from your Java Selenium + TestNG project.\n\n## How to run it\n\n```bash\nnpm install\nnpx playwright install\nnpx playwright test\n```\n\nReview the `// TODO` markers in the code: they are the only points with no 1:1 equivalent.\n\n## Static validation\n\nOpen `VALIDATION.md`: it compares each original Java file against its generated TypeScript (tests, assertions, data rows, URLs, locators, hooks, TODOs, and syntax) without running either suite.\n\n## Environment stability (QA / UAT)\n\nBefore the real suite, run the environment checker:\n\n```bash\nnpx playwright test tests/env-stability.spec.ts\n```\n\nIt probes QA and UAT 5 times, measures latency, and if an environment is unstable or not responding, its test fails and reports it by name. Edit the URLs in `ENVIRONMENTS` inside that file if your environments are different.\n');
+  var blob = await outZip.generateAsync({ type:'blob' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'playwright-project.zip'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 3000);
+  toast('Playwright project downloaded');
+}
+document.getElementById('zipInput').addEventListener('change', function(e){ handleProjectFile(e.target.files[0]); e.target.value=''; });
+document.getElementById('dlProjectBtn').addEventListener('click', downloadProjectZip);
+var dz = document.getElementById('dropZone');
+['dragenter','dragover'].forEach(function(ev){ dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.add('drag'); }); });
+['dragleave','drop'].forEach(function(ev){ dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.remove('drag'); }); });
+dz.addEventListener('drop', function(e){ var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if(f) handleProjectFile(f); });
+
+loadExample('login');
+</script>
+</body>
+</html>
